@@ -1,0 +1,15 @@
+cargo-features = ['edition']
+
+[package]
+name = "topd"
+version = "0.1.0"
+authors = ["Camden Cheek <ccheek22@gmail.com>"]
+edition = '2018'
+
+[dependencies]
+clap = "*"
+serde = "1.0.75"
+serde_derive = "1.0.75"
+serde_json = "1.0.26"
+directories = "1.0.1"
+rayon = "1.0.2"
