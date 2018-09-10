@@ -20,19 +20,24 @@ impl Store {
     self.directories.retain(|dir, _| Path::new(&dir).exists());
   }
 
-  pub fn sorted(&self, sort_method: &SortMethod) -> Vec<DirectoryStats> {
+  pub fn sorted(&self, sort_method: &SortMethod) -> Vec<(String,String)> {
     let mut unsorted_vector: Vec<_> = self.directories
       .iter()
       .collect();
 
-    unsorted_vector.par_sort_by(|(_, val1), (_, val2)| val1.cmp(val2, sort_method).reverse());
-    unsorted_vector.iter()
+    unsorted_vector
+      .par_sort_by(|(_, val1), (_, val2)| val1.cmp(val2, sort_method).reverse());
+
+    unsorted_vector
+      .iter()
+      .map(|(dir,stats)| (dir,stats.score_string(sort_method)))
       .collect()
+
   }
 
   pub fn truncate(&mut self, keep_num: usize, sort_method: &SortMethod) {
     let sorted = self.sorted(sort_method);
-    for dir in sorted.iter().skip(keep_num) {
+    for (dir, _) in sorted.iter().skip(keep_num) {
       self.directories.remove(dir);
     }
   }
@@ -76,12 +81,12 @@ impl Store {
     let mut writer = BufWriter::new(handle);
 
     if stat {
-      for dir in self.sorted(method).iter() {
+      for  in self.sorted(method).iter() {
         writer.write(&format!("{} {}",dir).into_bytes());
       }
     } else {
       for dir in self.sorted(method).iter() {
-        writer.write(&format!(format_string,dir).into_bytes());
+        writer.write(&format!("{}",dir).into_bytes());
       }
     }
   }

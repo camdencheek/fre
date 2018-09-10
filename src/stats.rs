@@ -29,6 +29,10 @@ impl DirectoryStats {
             SortMethod::Frecent => self.cmp_frecent(other),
         }
     }
+
+    pub fn weight_string(&self, method: &SortMethod) -> {
+       
+    }
 }
 
 impl Default for DirectoryStats {
