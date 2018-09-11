@@ -20,7 +20,7 @@ impl Store {
     self.directories.retain(|dir, _| Path::new(&dir).exists());
   }
 
-  pub fn sorted(&self, sort_method: &SortMethod) -> Vec<(String,String)> {
+  pub fn sorted(&self, sort_method: &SortMethod) -> Vec<(String,DirectoryStats)> {
     let mut unsorted_vector: Vec<_> = self.directories
       .iter()
       .collect();
@@ -30,9 +30,8 @@ impl Store {
 
     unsorted_vector
       .iter()
-      .map(|(dir,stats)| (dir,stats.score_string(sort_method)))
+      .map(|&(a,b)| (a.clone(),*b))
       .collect()
-
   }
 
   pub fn truncate(&mut self, keep_num: usize, sort_method: &SortMethod) {
@@ -46,7 +45,7 @@ impl Store {
     unimplemented!();
   }
 
-  pub fn access_dir(&mut self, path: String) {
+  pub fn add(&mut self, path: String) {
     self.promote_dir(path, 1.0);
   }
 
@@ -76,17 +75,31 @@ impl Store {
 
   pub fn print_sorted(&self, limit: Option<u64>, method: &SortMethod, stat: bool) {
     let stdout = io::stdout();
-    let mut handle = stdout.lock();
+    let handle = stdout.lock();
 
     let mut writer = BufWriter::new(handle);
 
     if stat {
-      for  in self.sorted(method).iter() {
-        writer.write(&format!("{} {}",dir).into_bytes());
+      match method {
+        SortMethod::Recent => {
+          for (dir, stats)  in self.sorted(method).iter() {
+            writer.write(&format!("{:.04} {}\n",stats.last_accessed as f64 / 60.0 / 60.0, dir).into_bytes()).unwrap();
+          }
+        },
+        SortMethod::Frecent => {
+          for (dir, stats)  in self.sorted(method).iter() {
+            writer.write(&format!("{:.04} {}\n",stats.score, dir).into_bytes()).unwrap();
+          }
+        },
+        SortMethod::Frequent => {
+          for (dir, stats)  in self.sorted(method).iter() {
+            writer.write(&format!("{} {}\n",stats.num_accesses, dir ).into_bytes()).unwrap();
+          }
+        },
       }
     } else {
-      for dir in self.sorted(method).iter() {
-        writer.write(&format!("{}",dir).into_bytes());
+      for (dir, stats) in self.sorted(method).iter() {
+        writer.write(&format!("{}\n",dir).into_bytes()).unwrap();
       }
     }
   }

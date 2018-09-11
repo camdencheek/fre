@@ -2,7 +2,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use std::cmp::Ordering;
 use super::SortMethod;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Copy, Clone)]
 pub struct DirectoryStats {
     pub score: f64,
     pub last_accessed: u64,
@@ -30,9 +30,6 @@ impl DirectoryStats {
         }
     }
 
-    pub fn weight_string(&self, method: &SortMethod) -> {
-       
-    }
 }
 
 impl Default for DirectoryStats {

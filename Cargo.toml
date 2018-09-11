@@ -1,5 +1,6 @@
 cargo-features = ['edition']
 
+
 [package]
 name = "topd"
 version = "0.1.0"
@@ -17,3 +18,4 @@ assert_cmd = "0.9.1"
 predicates = "0.9.0"
 tempfile = "3.0.3"
 rand = "0.5.5"
+path-absolutize = "1.1.0"
