@@ -1,3 +1,4 @@
+#![feature(box_syntax)]
 mod common;
 
 mod flags {
@@ -51,11 +52,12 @@ mod flags {
       .arg("--purge")
       .assert();
 
-    let usage = store::read_store(&store_file.to_path_buf());
+    let mut usage = store::read_store(&store_file.to_path_buf());
 
     println!("{:?}", usage);
-    assert!(!usage.directories.contains_key("/home/nonexistant_dir"),
-    "Purge didn't remove /home/nonexistant_dir")
+    assert!(usage.find(&"/home/nonexistant_dir".to_string())
+            .is_none(), 
+            "Purge didn't remove /home/nonexistant_dir")
   }
 }
 

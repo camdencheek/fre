@@ -1,6 +1,7 @@
-use topd::{store, args, SortMethod};
+use topd::{store, args, SortMethod, stats};
 use std::path::PathBuf;
 use path_absolutize::*;
+use rand::prelude::*;
 
 
 fn main() {
@@ -32,7 +33,7 @@ fn main() {
         .map(|s| {
           s.parse::<u64>().expect(format!("invalid u64 {}", s).as_str())
         });
-      usage.print_sorted(limit, &sort_method, matches.is_present("stat"));
+      usage.print_sorted(&sort_method, matches.is_present("stat"), limit);
     }
 
     if matches.is_present("add") {

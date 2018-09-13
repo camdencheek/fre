@@ -4,41 +4,45 @@ use serde_json;
 use super::{default_store_path, SortMethod};
 use super::stats::DirectoryStats;
 use std::time::SystemTime;
-use std::io::{self, BufReader, BufWriter, Write};
+use std::io::{self, BufReader, BufWriter, Write, Stdout};
 use std::fs::{self, File};
 use std::path::{PathBuf, Path};
+use std::default::Default;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Store {
-  time_created: SystemTime,
+  reference_time: SystemTime,
   half_life_secs: u64,
-  pub directories: HashMap<String, DirectoryStats>,
+  directories: Vec<DirectoryStats>,
+}
+
+impl Default for Store {
+  fn default() ->  Store {
+    Store {
+      reference_time: SystemTime::now(),
+      half_life_secs: 60 * 60 * 24 * 7 * 2, // two week half life
+      directories: Vec::new(),
+    }
+  }
 }
 
 impl Store {
   pub fn purge(&mut self) {
-    self.directories.retain(|dir, _| Path::new(&dir).exists());
+    self.directories.retain(|dir| Path::new(&dir.directory).exists());
   }
 
-  pub fn sorted(&self, sort_method: &SortMethod) -> Vec<(String,DirectoryStats)> {
-    let mut unsorted_vector: Vec<_> = self.directories
-      .iter()
-      .collect();
+  pub fn sorted(&self, sort_method: &SortMethod) -> Vec<DirectoryStats> {
+    let mut new_vec = self.directories.clone();
+    
+    new_vec.par_sort_by(|dir1, dir2| {
+      dir1.cmp_score(dir2, sort_method).reverse()
+    });
 
-    unsorted_vector
-      .par_sort_by(|(_, val1), (_, val2)| val1.cmp(val2, sort_method).reverse());
-
-    unsorted_vector
-      .iter()
-      .map(|&(a,b)| (a.clone(),*b))
-      .collect()
+    new_vec
   }
 
   pub fn truncate(&mut self, keep_num: usize, sort_method: &SortMethod) {
-    let sorted = self.sorted(sort_method);
-    for (dir, _) in sorted.iter().skip(keep_num) {
-      self.directories.remove(dir);
-    }
+    unimplemented!();
   }
 
   pub fn reset_time(time: SystemTime) {
@@ -46,65 +50,57 @@ impl Store {
   }
 
   pub fn add(&mut self, path: String) {
-    self.promote_dir(path, 1.0);
+    let ref_time = self.reference_time.clone();
+    if let Some(dir) = self.find_mut(&path) {
+      dir.increase(1.0, ref_time);
+    } else {
+        let index = self.directories
+          .binary_search_by_key(&path, |dir_stats| dir_stats.directory.clone())
+          .err()
+          .unwrap();
+        
+        self.directories.insert(index, DirectoryStats::new(path.clone(), ref_time));
+    }
   }
 
-  pub fn promote_dir(&mut self, path: String, amount: f64) {
-    let stats = self.directories
-      .entry(path)
-      .or_insert(DirectoryStats::default());
-
-    stats.num_accesses += amount as u64;
-    stats.last_accessed = self.time_created
-      .elapsed()
-      .expect("Time went backward")
-      .as_secs();
-    stats.score += amount *
-      2.0f64.powf(stats.last_accessed as f64 / self.half_life_secs as f64);
+  pub fn find(&self, path: &String) -> Option<&DirectoryStats> {
+    match self.directories.binary_search_by_key(&path, |dirStats| &dirStats.directory) {
+      Ok(index) => Some(&self.directories[index]),
+      Err(index) => None,
+    }
   }
 
-  pub fn demote_dir(&mut self, path: String, amount: f64) {
-    let stats = self.directories
-      .entry(path)
-      .or_insert(DirectoryStats::default());
-
-    stats.num_accesses += amount as u64;
-    stats.score -= amount *
-      2.0f64.powf(stats.last_accessed as f64 / self.half_life_secs as f64);
+  pub fn find_mut(&mut self, path: &String) -> Option<&mut DirectoryStats> {
+    match self.directories.binary_search_by_key(&path, |dirStats| &dirStats.directory) {
+      Ok(index) => Some(&mut self.directories[index]),
+      Err(index) => None,
+    }
   }
 
-  pub fn print_sorted(&self, limit: Option<u64>, method: &SortMethod, stat: bool) {
+  pub fn print_sorted(&self, method: &SortMethod, show_stats: bool, limit: Option<u64>) {
+    let sorted = self.sorted(method);
+
     let stdout = io::stdout();
-    let handle = stdout.lock();
+    let mut handle = stdout.lock();
 
     let mut writer = BufWriter::new(handle);
 
-    if stat {
-      match method {
-        SortMethod::Recent => {
-          for (dir, stats)  in self.sorted(method).iter() {
-            writer.write(&format!("{:.04} {}\n",stats.last_accessed as f64 / 60.0 / 60.0, dir).into_bytes()).unwrap();
-          }
-        },
-        SortMethod::Frecent => {
-          for (dir, stats)  in self.sorted(method).iter() {
-            writer.write(&format!("{:.04} {}\n",stats.score, dir).into_bytes()).unwrap();
-          }
-        },
-        SortMethod::Frequent => {
-          for (dir, stats)  in self.sorted(method).iter() {
-            writer.write(&format!("{} {}\n",stats.num_accesses, dir ).into_bytes()).unwrap();
-          }
-        },
-      }
-    } else {
-      for (dir, stats) in self.sorted(method).iter() {
-        writer.write(&format!("{}\n",dir).into_bytes()).unwrap();
+    match limit {
+      Some(n) => {
+        for dir in sorted.iter().take(n as usize) {
+            writer.write(dir.to_string(method, show_stats, self.reference_time).as_bytes());
+        }
+      },
+      None => {
+        for dir in sorted.iter() {
+            writer.write(dir.to_string(method, show_stats, self.reference_time).as_bytes());
+        }
       }
     }
   }
 }
 
+// TODO return a result
 pub fn read_store(path: &PathBuf) -> Store {
   let usage: Store = if path.is_file() {
     let file = File::open(&path)
@@ -113,9 +109,9 @@ pub fn read_store(path: &PathBuf) -> Store {
     serde_json::from_reader(reader).expect("Cannot unmarshal json from storage file")
   } else {
     Store {
-      time_created: SystemTime::now(),
+      reference_time: SystemTime::now(),
       half_life_secs: 60 * 60 * 24 * 7 * 2, // two week half life
-      directories: HashMap::new(),
+      directories: Vec::new(),
     }
   };
 
