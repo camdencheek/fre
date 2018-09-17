@@ -52,9 +52,8 @@ mod flags {
       .arg("--purge")
       .assert();
 
-    let mut usage = store::read_store(&store_file.to_path_buf());
+    let mut usage = store::read_store(&store_file.to_path_buf()).unwrap();
 
-    println!("{:?}", usage);
     assert!(usage.find(&"/home/nonexistant_dir".to_string())
             .is_none(), 
             "Purge didn't remove /home/nonexistant_dir")

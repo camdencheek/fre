@@ -1,7 +1,6 @@
-use topd::{store, args, SortMethod, stats};
+use topd::{store, args, SortMethod};
 use std::path::PathBuf;
 use path_absolutize::*;
-use rand::prelude::*;
 
 
 fn main() {
@@ -14,7 +13,7 @@ fn main() {
       .unwrap_or_else(|| topd::default_store_path()); 
 
 
-    let mut usage = store::read_store(&store_file);
+    let mut usage = store::read_store(&store_file).unwrap();
 
     if matches.is_present("purge") {
       usage.purge();
@@ -46,6 +45,11 @@ fn main() {
         .expect("Unable to convert absolute path to string")
         .to_string()
       );
+    }
+
+    if let Some(n) = matches.value_of("truncate")  {
+      let keep_num = n.parse::<usize>().expect(&format!("invalid usize {}", n));
+      usage.truncate(keep_num, &sort_method);
     }
 
     store::write_store(&usage, &store_file);

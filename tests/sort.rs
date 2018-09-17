@@ -3,10 +3,11 @@ mod common;
 
 mod sort {
 
-  use super::common;
+  use super::common; 
   use assert_cmd::prelude::*;
   use std::process::Command;
   use predicates::prelude::*;
+  use topd::store;
 
   #[test]
   fn sorted_stats() {
@@ -94,6 +95,25 @@ mod sort {
       .arg("badsort")
       .assert()
       .stderr(expected_error);
+  }
+
+  #[test]
+  fn truncate() {
+    let store_file = common::get_tempfile_path();
+
+    Command::main_binary()
+      .unwrap()
+      .arg("--store")
+      .arg(&store_file.as_os_str())
+      .arg("--truncate")
+      .arg("2")
+      .assert()
+      .success();
+
+    let usage = store::read_store(&store_file.to_path_buf()).unwrap();
+
+    assert_eq!(usage.directories.len(), 2);
+
   }
 }
 

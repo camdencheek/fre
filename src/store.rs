@@ -8,18 +8,19 @@ use std::io::{self, BufReader, BufWriter, Write, Stdout};
 use std::fs::{self, File};
 use std::path::{PathBuf, Path};
 use std::default::Default;
+use chrono::{NaiveDateTime,DateTime,Utc};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Store {
-  reference_time: SystemTime,
+  reference_time: NaiveDateTime,
   half_life_secs: u64,
-  directories: Vec<DirectoryStats>,
+  pub directories: Vec<DirectoryStats>,
 }
 
 impl Default for Store {
   fn default() ->  Store {
     Store {
-      reference_time: SystemTime::now(),
+      reference_time: DateTime::<Utc>::from(SystemTime::now()).naive_local(),
       half_life_secs: 60 * 60 * 24 * 7 * 2, // two week half life
       directories: Vec::new(),
     }
@@ -42,10 +43,13 @@ impl Store {
   }
 
   pub fn truncate(&mut self, keep_num: usize, sort_method: &SortMethod) {
-    unimplemented!();
+    let mut sorted_vec = self.sorted(sort_method);
+    sorted_vec.truncate(keep_num);
+
+    self.directories = sorted_vec;
   }
 
-  pub fn reset_time(time: SystemTime) {
+  pub fn reset_time(&mut self, time: SystemTime) {
     unimplemented!();
   }
 
@@ -101,27 +105,24 @@ impl Store {
 }
 
 // TODO return a result
-pub fn read_store(path: &PathBuf) -> Store {
-  let usage: Store = if path.is_file() {
+pub fn read_store(path: &PathBuf) -> Result<Store,io::Error> {
+  if path.is_file() {
     let file = File::open(&path)
       .expect(&format!("Cannot open file {}", &path.to_str().unwrap()));
     let reader = BufReader::new(file);
-    serde_json::from_reader(reader).expect("Cannot unmarshal json from storage file")
+    Ok(serde_json::from_reader(reader).expect("Cannot unmarshal json from storage file"))
   } else {
-    Store {
-      reference_time: SystemTime::now(),
-      half_life_secs: 60 * 60 * 24 * 7 * 2, // two week half life
-      directories: Vec::new(),
-    }
-  };
+    Ok(Store::default())
+  }
 
-  return usage;
 }
 
-pub fn write_store(d: &Store, path: &PathBuf) {
+pub fn write_store(d: &Store, path: &PathBuf) -> io::Result<()> {
   let store_dir = path.parent().expect("file must have parent");
-  fs::create_dir_all(&store_dir).unwrap();
-  let file = File::create(&path).unwrap();
+  fs::create_dir_all(&store_dir)?;
+  let file = File::create(&path)?;
   let writer = BufWriter::new(file);
-  serde_json::to_writer(writer, &d).unwrap();
+  serde_json::to_writer(writer, &d)?;
+
+  return Ok(())
 }

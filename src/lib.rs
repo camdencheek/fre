@@ -11,6 +11,7 @@ pub mod args;
 pub mod store;
 pub mod stats;
 
+#[derive(Debug)]
 pub enum SortMethod {
     Recent,
     Frequent,

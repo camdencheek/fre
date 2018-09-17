@@ -21,7 +21,7 @@ mod weight {
       .arg(&dir)
       .assert();
 
-    let mut usage = store::read_store(&store_file.to_path_buf());
+    let mut usage = store::read_store(&store_file.to_path_buf()).unwrap();
 
     assert!(usage.find(&dir).is_some());
     assert_eq!(3, usage.find(&dir).unwrap().num_accesses, "Number of accesses did not increment");
@@ -42,7 +42,7 @@ mod weight {
       .arg(&new_dir)
       .assert();
 
-    let usage = store::read_store(&store_file.to_path_buf());
+    let usage = store::read_store(&store_file.to_path_buf()).unwrap();
 
     assert!(usage.find(&new_dir).is_some());
     assert_eq!(usage.find(&new_dir).unwrap().num_accesses, 1, "Incorrect number of accesses");
@@ -71,8 +71,7 @@ mod weight {
       .arg(&relative_dir)
       .assert();
 
-    let usage = store::read_store(&store_file.to_path_buf());
-    println!("{:?}", absolute_dir);
+    let usage = store::read_store(&store_file.to_path_buf()).unwrap();
 
     assert!(usage.find(&absolute_dir).is_some());
   }

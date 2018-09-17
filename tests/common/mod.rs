@@ -11,9 +11,7 @@ pub fn get_tempfile_path() -> tempfile::TempPath {
 
 
     file.write(r#"{
-      "reference_time": {
-        "secs_since_epoch": 1536521851,
-        "nanos_since_epoch":885366138},
+      "reference_time": "2018-09-16T17:56:35.402314544",
       "half_life_secs":1209600,
       "directories": [
         {
