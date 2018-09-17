@@ -8,6 +8,7 @@ mod sort {
   use std::process::Command;
   use predicates::prelude::*;
   use topd::store;
+  use std::str;
 
   #[test]
   fn sorted_stats() {
@@ -110,10 +111,18 @@ mod sort {
       .assert()
       .success();
 
-    let usage = store::read_store(&store_file.to_path_buf()).unwrap();
 
-    assert_eq!(usage.directories.len(), 2);
+    let two_lines = predicate::function(|x: &[u8]| {
+      str::from_utf8(x).unwrap().lines().count() == 2
+    });
+
+    Command::main_binary()
+      .unwrap()
+      .arg("--store")
+      .arg(&store_file.as_os_str())
+      .arg("--stat")
+      .assert()
+      .stdout(two_lines);
 
   }
 }
-
