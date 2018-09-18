@@ -1,6 +1,7 @@
 use topd::{store, args, SortMethod};
 use std::path::PathBuf;
 use path_absolutize::*;
+use std::process;
 
 
 fn main() {
@@ -13,7 +14,13 @@ fn main() {
       .unwrap_or_else(|| topd::default_store_path()); 
 
 
-    let mut usage = store::read_store(&store_file).unwrap();
+    let mut usage = match store::read_store(&store_file) {
+      Ok(u) => u,
+      Err(e) => {
+        eprintln!("Unable to read store file: {}", e);
+        process::exit(1);
+      }
+    };
 
     if matches.is_present("purge") {
       usage.purge();
@@ -52,5 +59,8 @@ fn main() {
       usage.truncate(keep_num, &sort_method);
     }
 
-    store::write_store(&usage, &store_file);
+    if let Err(e) = store::write_store(&usage, &store_file) {
+      eprintln!("Unable to write to store file: {}", e);
+      process::exit(2);
+    }
 }
