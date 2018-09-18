@@ -92,12 +92,14 @@ impl Store {
     match limit {
       Some(n) => {
         for dir in sorted.iter().take(n as usize) {
-            writer.write(dir.to_string(method, show_stats, self.reference_time).as_bytes());
+            writer.write(dir.to_string(method, show_stats, self.reference_time).as_bytes())
+              .expect("unable to write to stdout");
         }
       },
       None => {
         for dir in sorted.iter() {
-            writer.write(dir.to_string(method, show_stats, self.reference_time).as_bytes());
+            writer.write(dir.to_string(method, show_stats, self.reference_time).as_bytes())
+              .expect("unable to write to stdout");
         }
       }
     }
