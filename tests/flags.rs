@@ -19,7 +19,6 @@ mod flags {
     Command::main_binary()
       .unwrap()
       .arg("--version")
-      .env("stdout", "version")
       .assert()
       .stdout(expected_version);
   }
@@ -35,7 +34,6 @@ mod flags {
     Command::main_binary()
       .unwrap()
       .arg("-V")
-      .env("stdout", "version")
       .assert()
       .stdout(expected_version);
   }
