@@ -54,8 +54,9 @@ mod weight {
   fn add_relative() {
     let store_file = common::get_tempfile_path();
     let relative_dir = "./random_relative_dir".to_string();
-    let mut absolute_dir = std::env::temp_dir();
+    let mut absolute_dir = store_file.parent().unwrap().to_path_buf();
     absolute_dir.push("random_relative_dir");
+
     let absolute_dir = absolute_dir
       .into_os_string()
       .into_string()
