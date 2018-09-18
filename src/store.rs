@@ -68,16 +68,16 @@ impl Store {
   }
 
   pub fn find(&self, path: &String) -> Option<&DirectoryStats> {
-    match self.directories.binary_search_by_key(&path, |dirStats| &dirStats.directory) {
+    match self.directories.binary_search_by_key(&path, |dir_stats| &dir_stats.directory) {
       Ok(index) => Some(&self.directories[index]),
-      Err(index) => None,
+      Err(_) => None,
     }
   }
 
   pub fn find_mut(&mut self, path: &String) -> Option<&mut DirectoryStats> {
-    match self.directories.binary_search_by_key(&path, |dirStats| &dirStats.directory) {
+    match self.directories.binary_search_by_key(&path, |dir_stats| &dir_stats.directory) {
       Ok(index) => Some(&mut self.directories[index]),
-      Err(index) => None,
+      Err(_) => None,
     }
   }
 
