@@ -50,11 +50,18 @@ mod flags {
       .arg("--purge")
       .assert();
 
-    let mut usage = store::read_store(&store_file.to_path_buf()).unwrap();
+    let no_contains = predicate::str::contains("/home/nonexistant_dir\n").from_utf8().not();
+    let contains_root = predicate::str::contains("/\n").from_utf8();
+    let correct = no_contains.and(contains_root);
 
-    assert!(usage.find(&"/home/nonexistant_dir".to_string())
-            .is_none(), 
-            "Purge didn't remove /home/nonexistant_dir")
+
+    Command::main_binary()
+      .unwrap()
+      .arg("--store")
+      .arg(&store_file.as_os_str())
+      .arg("--sorted")
+      .assert()
+      .stdout(correct);
   }
 }
 
