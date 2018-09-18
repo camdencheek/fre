@@ -85,7 +85,7 @@ impl Store {
     let sorted = self.sorted(method);
 
     let stdout = io::stdout();
-    let mut handle = stdout.lock();
+    let handle = stdout.lock();
 
     let mut writer = BufWriter::new(handle);
 
