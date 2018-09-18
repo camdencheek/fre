@@ -106,17 +106,14 @@ impl Store {
   }
 }
 
-// TODO return a result
 pub fn read_store(path: &PathBuf) -> Result<Store,io::Error> {
   if path.is_file() {
-    let file = File::open(&path)
-      .expect(&format!("Cannot open file {}", &path.to_str().unwrap()));
+    let file = File::open(&path)?;
     let reader = BufReader::new(file);
-    Ok(serde_json::from_reader(reader).expect("Cannot unmarshal json from storage file"))
+    Ok(serde_json::from_reader(reader)?)
   } else {
     Ok(Store::default())
   }
-
 }
 
 pub fn write_store(d: &Store, path: &PathBuf) -> io::Result<()> {
