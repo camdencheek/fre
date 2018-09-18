@@ -21,12 +21,19 @@ mod weight {
       .arg(&dir)
       .assert();
 
-    let mut usage = store::read_store(&store_file.to_path_buf()).unwrap();
 
-    assert!(usage.find(&dir).is_some());
-    assert_eq!(3, usage.find(&dir).unwrap().num_accesses, "Number of accesses did not increment");
-    assert!(usage.find(&dir).unwrap().frecency > 3.1, "Frecency did not increase");
-    assert!(usage.find(&dir).unwrap().last_accessed > 11, "Last accessed time did not increase");
+    let exists = predicates::str::contains(dir).from_utf8();
+
+    Command::main_binary()
+      .unwrap()
+      .arg("--store")
+      .arg(&store_file.as_os_str())
+      .arg("--sorted")
+      .assert()
+      .stdout(exists);
+
+    // TODO figure out how to assert increase
+
   }
 
   #[test]
@@ -42,26 +49,24 @@ mod weight {
       .arg(&new_dir)
       .assert();
 
-    let usage = store::read_store(&store_file.to_path_buf()).unwrap();
+    let exists = predicates::str::contains(new_dir).from_utf8();
 
-    assert!(usage.find(&new_dir).is_some());
-    assert_eq!(usage.find(&new_dir).unwrap().num_accesses, 1, "Incorrect number of accesses");
-    assert!(usage.find(&new_dir).unwrap().frecency > 0.1, "Frecency not greater than zero");
-    assert!(usage.find(&new_dir).unwrap().last_accessed > 1, "Last accessed time not greater than zero");
+    Command::main_binary()
+      .unwrap()
+      .arg("--store")
+      .arg(&store_file.as_os_str())
+      .arg("--sorted")
+      .assert()
+      .stdout(exists);
+
+    // TODO figure out how to assert increase
   }
 
   #[test]
   fn add_relative() {
     let store_file = common::get_tempfile_path();
-    let relative_dir = "./random_relative_dir".to_string();
-    let mut absolute_dir = store_file.parent().unwrap().to_path_buf();
-    absolute_dir.push("random_relative_dir");
-
-    let absolute_dir = absolute_dir
-      .into_os_string()
-      .into_string()
-      .unwrap();
-
+    let relative_dir = "/home/test/../random_relative_dir".to_string();
+    let absolute_dir = "/home/random_relative_dir".to_string();
 
     Command::main_binary()
       .unwrap()
@@ -72,8 +77,16 @@ mod weight {
       .arg(&relative_dir)
       .assert();
 
-    let usage = store::read_store(&store_file.to_path_buf()).unwrap();
+    let relative = predicates::str::contains(absolute_dir).from_utf8();
 
-    assert!(usage.find(&absolute_dir).is_some());
+    Command::main_binary()
+      .unwrap()
+      .current_dir(std::env::temp_dir().as_os_str())
+      .arg("--store")
+      .arg(&store_file.as_os_str())
+      .arg("--sorted")
+      .assert()
+      .stdout(relative);
+
   }
 }
