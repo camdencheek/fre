@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 use super::SortMethod;
 use chrono::{DateTime,NaiveDateTime,Utc};
 
-const HALF_LIFE: f64 = 60.0 * 60.0 * 24.0 * 7.0 * 2.0; // two weeks in seconds
+const HALF_LIFE: f64 = 60.0 * 60.0 * 24.0 * 7.0; // one week in seconds
 
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -50,32 +50,36 @@ impl DirectoryStats {
 
     pub fn increase(&mut self, weight: f64, ref_time: NaiveDateTime) {
       self.num_accesses += weight as u64;
-      self.last_accessed = DateTime::<Utc>::from(SystemTime::now())
+      let elapsed_since_ref = DateTime::<Utc>::from(SystemTime::now())
         .naive_local()
         .signed_duration_since(ref_time)
         .num_seconds();
+      self.last_accessed = elapsed_since_ref;
       self.frecency += weight *
-        2.0f64.powf(self.last_accessed as f64 / HALF_LIFE);
+        2.0f64.powf(elapsed_since_ref as f64 / HALF_LIFE);
     }
 
     pub fn decrease(&mut self, weight: f64, ref_time: NaiveDateTime) {
       self.num_accesses += weight as u64;
+      let elapsed_since_ref = DateTime::<Utc>::from(SystemTime::now())
+        .naive_local()
+        .signed_duration_since(ref_time)
+        .num_seconds();
       self.frecency -= weight *
-        2.0f64.powf(self.last_accessed as f64 / HALF_LIFE);
+        2.0f64.powf(elapsed_since_ref as f64 / HALF_LIFE);
+      // TODO determine how last accessed should be handled
     }
     
     pub fn secs_since_access(&self, ref_time: NaiveDateTime) -> i64 {
-      DateTime::<Utc>::from(SystemTime::now()).naive_local()
-        .signed_duration_since(ref_time)
-        .num_seconds()
+      secs_elapsed(ref_time) - self.last_accessed
     }
 
     pub fn to_string(&self, method: &SortMethod, show_stats: bool, ref_time: NaiveDateTime) -> String {
       if show_stats {
         match method {
-          SortMethod::Recent => format!("{: <10} {}\n", self.secs_since_access(ref_time), self.directory),
-          SortMethod::Frequent => format!("{: <1} {}\n", self.num_accesses, self.directory),
-          SortMethod::Frecent => format!("{: <10.3} {}\n", self.frecency, self.directory),
+          SortMethod::Recent => format!("{: <.3}\t{}\n", self.secs_since_access(ref_time) as f64 / 60.0 / 60.0, self.directory),
+          SortMethod::Frequent => format!("{: <}\t{}\n", self.num_accesses, self.directory),
+          SortMethod::Frecent => format!("{: <.3}\t{}\n", self.frecency / 2.0f64.powf(self.secs_since_access(ref_time) as f64 / HALF_LIFE), self.directory),
         }
       } else {
         match method {
@@ -83,4 +87,10 @@ impl DirectoryStats {
         }
       }
     }
+}
+
+pub fn secs_elapsed(ref_time: NaiveDateTime) -> i64 {
+  DateTime::<Utc>::from(SystemTime::now()).naive_local()
+    .signed_duration_since(ref_time)
+    .num_seconds()
 }

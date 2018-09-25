@@ -14,7 +14,7 @@ mod sort {
   fn sorted_stats() {
     let store_file = common::get_tempfile_path();
 
-    let expected_sorted = predicate::str::similar("3 /\n2 /home\n1 /home/nonexistant_dir\n")
+    let expected_sorted = predicate::str::similar("3\t/\n2\t/home\n1\t/home/nonexistant_dir\n")
       .from_utf8();
 
     Command::main_binary()

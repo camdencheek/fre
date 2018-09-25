@@ -12,7 +12,7 @@ use chrono::{NaiveDateTime,DateTime,Utc};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Store {
-  reference_time: NaiveDateTime,
+  pub reference_time: NaiveDateTime,
   half_life_secs: u64,
   pub directories: Vec<DirectoryStats>,
 }
