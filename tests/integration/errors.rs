@@ -7,7 +7,7 @@ use tempfile;
 fn invalid_store() {
 
   let empty = predicates::str::is_empty().from_utf8();
-  let error = predicates::str::contains("Unable to read store file").from_utf8();
+  let error = predicates::str::contains("unable to read store file").from_utf8();
   let file = tempfile::NamedTempFile::new().unwrap();
 
   Command::main_binary()
