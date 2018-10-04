@@ -1,4 +1,4 @@
-use clap::{App, Arg, ArgMatches};
+use clap::{App, Arg, ArgMatches, AppSettings};
 use directories::ProjectDirs;
 use std::path::PathBuf;
 use std::process;
@@ -15,6 +15,8 @@ pub fn get_app() -> App<'static,'static> {
     App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
+        .setting(AppSettings::ColorAuto)
+        .setting(AppSettings::ColoredHelp)
         .arg(Arg::with_name("store")
                 .long("store")
                 .value_name("FILE")
