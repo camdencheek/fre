@@ -42,21 +42,18 @@ fn main() {
         // directory before this
         let dir = matches.value_of("directory").unwrap();
 
-        let path = match PathBuf::from(dir).absolutize() {
+        let absolute_path = match PathBuf::from(dir).absolutize() {
             Err(e) => {
                 eprintln!("Unable to get absolute path of {}: {}", dir, e);
                 process::exit(1);
             }
-            Ok(p) => p
-                .to_str()
-                .unwrap_or_else(|| {
-                    eprintln!("Unable to convert absolute path {:?} to string", p);
-                    process::exit(1);
-                })
-                .to_string(),
+            Ok(p) => p.to_str().unwrap_or_else(|| {
+                eprintln!("Unable to convert absolute path {:?} to string", p);
+                process::exit(1);
+            }).to_string(),
         };
 
-        usage.add(&path);
+        usage.add(&absolute_path);
     }
 
     if matches.is_present("increase") || matches.is_present("decrease") {
