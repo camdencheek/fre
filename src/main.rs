@@ -48,7 +48,7 @@ fn main() {
     if matches.is_present("add") {
         // This unwrap is okay because clap should catch a missing
         // directory before this
-        let dir = matches.value_of("directory").unwrap();
+        let dir = matches.value_of("path").unwrap();
 
         let absolute_path = match PathBuf::from(dir).absolutize() {
             Err(e) => {
