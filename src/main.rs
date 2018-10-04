@@ -1,3 +1,5 @@
+use log::error;
+use env_logger;
 use path_absolutize::*;
 use std::path::PathBuf;
 use std::process;
@@ -5,12 +7,18 @@ use std::str::FromStr;
 use topd::{args, store, SortMethod};
 
 fn main() {
+
+    env_logger::Builder::from_default_env()
+      .default_format_timestamp(false)
+      .default_format_module_path(false)
+      .init();
+
     let matches = args::get_app().get_matches();
 
     let store_file = args::get_store_path(&matches); 
 
     let mut usage = store::read_store(&store_file).unwrap_or_else(|e| {
-        eprintln!("Unable to read store file: {}", e);
+        error!("unable to read store file: {}", e);
         process::exit(1);
     });
 
@@ -29,7 +37,7 @@ fn main() {
     if matches.is_present("sorted") || matches.is_present("stat") {
         let limit = matches.value_of("limit").map(|s| {
             s.parse::<usize>().unwrap_or_else(|_| {
-                eprintln!("Invalid result limit {}", s);
+                error!("invalid limit '{}'", s);
                 process::exit(1);
             })
         });
@@ -44,11 +52,11 @@ fn main() {
 
         let absolute_path = match PathBuf::from(dir).absolutize() {
             Err(e) => {
-                eprintln!("Unable to get absolute path of {}: {}", dir, e);
+                error!("unable to get absolute path of {}: {}", dir, e);
                 process::exit(1);
             }
             Ok(p) => p.to_str().unwrap_or_else(|| {
-                eprintln!("Unable to convert absolute path {:?} to string", p);
+                error!("unable to convert absolute path {:?} to string", p);
                 process::exit(1);
             }).to_string(),
         };
@@ -59,11 +67,11 @@ fn main() {
     if matches.is_present("increase") || matches.is_present("decrease") {
         let weight = match (matches.value_of("increase"), matches.value_of("decrease")) {
             (Some(i), None) => f64::from_str(i).unwrap_or_else(|_| {
-                eprintln!("Unable to parse weight from {}", i);
+                error!("unable to parse weight from {}", i);
                 process::exit(1);
             }),
             (None, Some(d)) => -f64::from_str(d).unwrap_or_else(|_| {
-                eprintln!("Unable to parse weight from {}", d);
+                error!("unable to parse weight from {}", d);
                 process::exit(1);
             }),
             _ => unreachable!(),
@@ -74,12 +82,12 @@ fn main() {
         let absolute_path = PathBuf::from(input_path)
             .absolutize()
             .unwrap_or_else(|_| {
-                eprintln!("Unable to get absolute path of {}", input_path);
+                error!("unable to get absolute path of {}", input_path);
                 process::exit(1)
             })
             .to_str()
             .unwrap_or_else(|| {
-                eprintln!("Unable to convert absolute_path path to string");
+                error!("unable to convert absolute_path path to string");
                 process::exit(1)
             })
             .to_string();
@@ -91,7 +99,7 @@ fn main() {
         match n.parse::<usize>() {
             Ok(keep_num) => usage.truncate(keep_num, &sort_method),
             Err(_) => {
-                eprintln!("Invalid truncate limit {}", n);
+                error!("invalid truncate limit '{}'", n);
                 process::exit(1);
             }
         }
@@ -99,7 +107,7 @@ fn main() {
 
 
     if let Err(e) = store::write_store(&usage, &store_file) {
-        eprintln!("Unable to write to store file: {}", e);
+        error!("unable to write to store file: {}", e);
         process::exit(2);
     }
 }

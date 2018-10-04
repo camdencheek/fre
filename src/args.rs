@@ -1,7 +1,9 @@
+
 use clap::{App, Arg, ArgMatches, AppSettings};
 use directories::ProjectDirs;
 use std::path::PathBuf;
 use std::process;
+use log::error;
 
 fn is_int(s: String) -> Result<(), String> {
     match s.parse::<i64>() {
@@ -101,7 +103,7 @@ pub fn default_store(filename: Option<&str>) -> PathBuf {
   let store_dir = match ProjectDirs::from("", "", env!("CARGO_PKG_NAME")) {
     Some(dir) => dir.data_dir().to_path_buf(),
     None => {
-      eprintln!("Failed to detect default data directory");
+      error!("Failed to detect default data directory");
       process::exit(1);
     }
   };
