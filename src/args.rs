@@ -17,6 +17,7 @@ pub fn get_app() -> App<'static,'static> {
         .author(env!("CARGO_PKG_AUTHORS"))
         .setting(AppSettings::ColorAuto)
         .setting(AppSettings::ColoredHelp)
+        .setting(AppSettings::DeriveDisplayOrder)
         .arg(Arg::with_name("store")
                 .long("store")
                 .value_name("FILE")
