@@ -5,12 +5,9 @@ use std::str::FromStr;
 use topd::{args, store, SortMethod};
 
 fn main() {
-    let matches = args::parse_args();
+    let matches = args::get_app().get_matches();
 
-    let store_file = match matches.value_of("store") {
-        Some(s) => PathBuf::from(s),
-        None => topd::default_store_path(),
-    };
+    let store_file = args::get_store_path(&matches); 
 
     let mut usage = store::read_store(&store_file).unwrap_or_else(|e| {
         eprintln!("Unable to read store file: {}", e);
@@ -109,3 +106,6 @@ fn main() {
         process::exit(2);
     }
 }
+
+
+

@@ -194,7 +194,7 @@ mod tests {
 
   #[test]
   fn to_string() {
-    let mut low_path_stats = create_low_path();
+    let low_path_stats = create_low_path();
 
     assert_that!(low_path_stats.to_string(&SortMethod::Frecent, false))
       .is_equal_to("/test/path\n".to_string())

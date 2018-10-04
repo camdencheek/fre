@@ -1,4 +1,7 @@
 use clap::{App, Arg, ArgMatches};
+use directories::ProjectDirs;
+use std::path::PathBuf;
+use std::process;
 
 fn is_int(s: String) -> Result<(), String> {
     match s.parse::<i64>() {
@@ -7,14 +10,22 @@ fn is_int(s: String) -> Result<(), String> {
     }
 }
 
-pub fn parse_args() -> ArgMatches<'static> {
+pub fn get_app() -> App<'static,'static> {
+
     App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .arg(Arg::with_name("store")
                 .long("store")
                 .value_name("FILE")
-                .help("Use a custom storage file for the directory weights")
+                .conflicts_with_all(&["store_name"])
+                .help("Use a non-default store file")
+                .takes_value(true))
+        .arg(Arg::with_name("store_name")
+                .long("store_name")
+                .value_name("FILE")
+                .conflicts_with_all(&["store"])
+                .help("Use a non-default filename for the store file in the default store directory")
                 .takes_value(true))
         .arg(Arg::with_name("purge")
                 .short("P")
@@ -73,5 +84,55 @@ pub fn parse_args() -> ArgMatches<'static> {
         .arg(Arg::with_name("directory")
                 .index(1)
                 .help("The directory to jump to"))
-        .get_matches()
+}
+
+pub fn get_store_path(matches: &ArgMatches) -> PathBuf {
+  match (matches.value_of("store"), matches.value_of("store_name")) {
+    (Some(dir), None) => PathBuf::from(dir),
+    (None, file) => default_store(file), 
+    _ => unreachable!(),
+  }
+}
+
+pub fn default_store(filename: Option<&str>) -> PathBuf {
+  let store_dir = match ProjectDirs::from("", "", env!("CARGO_PKG_NAME")) {
+    Some(dir) => dir.data_dir().to_path_buf(),
+    None => {
+      eprintln!("Failed to detect default data directory");
+      process::exit(1);
+    }
+  };
+
+  let mut store_file = store_dir.clone();
+  let default = format!("{}.json", env!("CARGO_PKG_NAME"));
+  let filename = filename.unwrap_or(&default);
+  store_file.push(filename);
+
+  return store_file.to_path_buf(); 
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use spectral::prelude::*;
+
+  #[test]
+  fn get_store_path_full() {
+    let arg_vec = vec!["topd", "--store", "/test/path"];
+    let matches = get_app().get_matches_from_safe(arg_vec).unwrap();
+
+    let store_path = get_store_path(&matches);
+
+    assert_that!(store_path).is_equal_to(PathBuf::from("/test/path"));
+  }
+
+  #[test]
+  fn get_store_path_file() {
+    let arg_vec = vec!["topd", "--store_name", "test.path"];
+    let matches = get_app().get_matches_from_safe(arg_vec).unwrap();
+
+    let store_path = get_store_path(&matches);
+
+    assert_that!(store_path.to_str().unwrap()).ends_with("test.path");
+  }
 }
