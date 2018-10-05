@@ -12,8 +12,7 @@ Basic usage
 topd --sorted | fzf
 ```
 
-For integration with `fzf` CTRL-T, define the following environment variables
-```zsh
+For integration with `fzf` CTRL-T, define the following environment variables ```zsh
 export FZF_CTRL_T_COMMAND='command topd --sorted'
 export FZF_CTRL_T_OPTS='--tiebreak=index'
 ```
@@ -36,8 +35,10 @@ typeset -gaU chpwd_functions
 chpwd_functions+=topd_chpwd
 ```
 
+More shells to come
 
-#### vim
+### Other stuff
+
 You can also track most used files in vim
 ```viml
 " Topd integration
@@ -47,7 +48,6 @@ endfunction
 autocmd BufNewFile,BufReadPost * call IncrementTopd()
 ```
 
-More shells to come
 
 ## TODO 
 
