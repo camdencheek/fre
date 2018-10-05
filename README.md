@@ -24,18 +24,9 @@ export FZF_CTRL_T_COMMAND='command cat <(topd --sorted) <(fd -t d) <(fd -t d . ~
 export FZF_CTRL_T_OPTS='--tiebreak=index'
 ```
 
-Track files separately with vim
-```viml
-" Topd integration
-function IncrementTopd()
-  execute  "!topd --store_name 'files.json' --add " . expand('%:p')
-endfunction
-autocmd BufNewFile,BufReadPost * call IncrementTopd()
-```
-
 ### Shell integration
 
-#### `zsh`
+#### zsh
 
 ```zsh
 topd_chpwd() {
@@ -43,6 +34,17 @@ topd_chpwd() {
 }
 typeset -gaU chpwd_functions
 chpwd_functions+=topd_chpwd
+```
+
+
+#### vim
+You can also track most used files in vim
+```viml
+" Topd integration
+function IncrementTopd()
+  execute  "!topd --store_name 'files.json' --add " . expand('%:p')
+endfunction
+autocmd BufNewFile,BufReadPost * call IncrementTopd()
 ```
 
 More shells to come
