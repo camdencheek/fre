@@ -54,4 +54,5 @@ autocmd BufNewFile,BufReadPost * call IncrementTopd()
 
 - [ ] Implement automatic re-scaling to prevent overflow
 - [ ] Investigate supporting multiple half-lives for more flexible decay rates
+- [ ] Allow custom half-lives
 - [ ] Figure out how to get Serde to serialize/deserialize with rc pointers

@@ -13,12 +13,13 @@ fn main() {
       .default_format_module_path(false)
       .init();
 
+
     let matches = args::get_app().get_matches();
 
     let store_file = args::get_store_path(&matches); 
 
     let mut usage = store::read_store(&store_file).unwrap_or_else(|e| {
-        error!("unable to read store file: {}", e);
+        error!("unable to read store file {:?}: {}", &store_file, e);
         process::exit(1);
     });
 
@@ -77,7 +78,7 @@ fn main() {
             _ => unreachable!(),
         };
 
-        let input_path = matches.value_of("directory").unwrap(); // enforced by clap
+        let input_path = matches.value_of("path").unwrap(); // enforced by clap
 
         let absolute_path = PathBuf::from(input_path)
             .absolutize()

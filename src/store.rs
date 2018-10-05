@@ -106,7 +106,7 @@ pub fn write_store(d: &UsageStore, path: &PathBuf) -> io::Result<()> {
     fs::create_dir_all(&store_dir)?;
     let file = File::create(&path)?;
     let writer = BufWriter::new(file);
-    serde_json::to_writer(writer, &d)?;
+    serde_json::to_writer_pretty(writer, &d)?;
 
     return Ok(());
 }
