@@ -12,7 +12,8 @@ Basic usage
 topd --sorted | fzf
 ```
 
-For integration with `fzf` CTRL-T, define the following environment variables ```zsh
+For integration with `fzf` CTRL-T, define the following environment variables 
+```zsh
 export FZF_CTRL_T_COMMAND='command topd --sorted'
 export FZF_CTRL_T_OPTS='--tiebreak=index'
 ```
