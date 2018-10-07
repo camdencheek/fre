@@ -1,4 +1,3 @@
-
 use clap::{App, Arg, ArgMatches, AppSettings};
 use directories::ProjectDirs;
 use std::path::PathBuf;

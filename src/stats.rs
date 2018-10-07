@@ -57,6 +57,11 @@ impl PathStats {
         self.num_accesses += weight;
     }
 
+    pub fn get_frecency(&self) -> f32 {
+        self.frecency / 2.0f32.powf(
+          self.secs_since_access() as f32 / self.half_life)
+    }
+
     pub fn update_last_access(&mut self) {
         self.last_accessed = secs_elapsed(self.reference_time);
     }
@@ -70,13 +75,17 @@ impl PathStats {
             match method {
                 SortMethod::Recent => format!(
                     "{: <.3}\t{}\n",
-                    self.secs_since_access() as f64 / 60.0 / 60.0,
+                    self.secs_since_access() / 60.0 / 60.0,
                     self.path
                 ),
-                SortMethod::Frequent => format!("{: <}\t{}\n", self.num_accesses, self.path),
+                SortMethod::Frequent => format!(
+                  "{: <}\t{}\n", 
+                  self.num_accesses, 
+                  self.path
+                ),
                 SortMethod::Frecent => format!(
                     "{: <.3}\t{}\n",
-                    self.frecency as f32 / 2.0f32.powf(self.secs_since_access() as f32 / self.half_life),
+                    self.get_frecency(),
                     self.path
                 ),
             }
