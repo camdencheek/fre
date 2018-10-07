@@ -1,24 +1,21 @@
 use super::stats::PathStats;
+use super::current_time_secs;
 use super::SortMethod;
-use chrono::{DateTime, NaiveDateTime, Utc};
-use serde_json;
 use std::default::Default;
-use std::fs::{self, File};
-use std::io::{self, BufReader, BufWriter, Write};
-use std::path::{Path, PathBuf};
+use std::io::{self, BufWriter, Write};
+use std::path::Path;
 use std::time::SystemTime;
 
-#[derive(Serialize, Deserialize, Debug)]
 pub struct UsageStore {
-    pub reference_time: NaiveDateTime,
-    pub half_life: f64,
+    pub reference_time: f64,
+    pub half_life: f32,
     pub paths: Vec<PathStats>,
 }
 
 impl Default for UsageStore {
     fn default() -> UsageStore {
         UsageStore {
-            reference_time: DateTime::<Utc>::from(SystemTime::now()).naive_local(),
+            reference_time: current_time_secs(),
             half_life: 60.0 * 60.0 * 24.0 * 3.0, // three day half life
             paths: Vec::new(),
         }
@@ -55,10 +52,10 @@ impl UsageStore {
         path_stats.update_last_access();
     }
 
-    pub fn adjust(&mut self, path: &str, weight: f64) {
+    pub fn adjust(&mut self, path: &str, weight: f32) {
         let path_stats = self.get(&path);
         path_stats.update_score(weight);
-        path_stats.update_num_accesses(weight as i64);
+        path_stats.update_num_accesses(weight as i32);
     }
 
     fn get(&mut self, path: &str) -> &mut PathStats {
@@ -90,23 +87,3 @@ impl UsageStore {
     }
 }
 
-pub fn read_store(path: &PathBuf) -> Result<UsageStore, io::Error> {
-    if path.is_file() {
-        let file = File::open(&path)?;
-        let reader = BufReader::new(file);
-        let store = serde_json::from_reader(reader)?;
-        Ok(store)
-    } else {
-        Ok(UsageStore::default())
-    }
-}
-
-pub fn write_store(d: &UsageStore, path: &PathBuf) -> io::Result<()> {
-    let store_dir = path.parent().expect("file must have parent");
-    fs::create_dir_all(&store_dir)?;
-    let file = File::create(&path)?;
-    let writer = BufWriter::new(file);
-    serde_json::to_writer_pretty(writer, &d)?;
-
-    return Ok(());
-}

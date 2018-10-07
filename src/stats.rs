@@ -1,27 +1,25 @@
 use super::SortMethod;
-use chrono::{DateTime, NaiveDateTime, Utc};
+use super::current_time_secs;
 use std::cmp::Ordering;
-use std::rc::Rc;
-use std::time::SystemTime;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Clone)]
 pub struct PathStats {
-    half_life: Rc<f64>,
-    reference_time: Rc<NaiveDateTime>,
     pub path: String,
-    pub frecency: f64,
-    pub last_accessed: i64,
-    pub num_accesses: i64,
+    pub half_life: f32,
+    pub reference_time: f64,
+    pub frecency: f32,
+    pub last_accessed: f32,
+    pub num_accesses: i32
 }
 
 impl PathStats {
-    pub fn new(path: String, ref_time: NaiveDateTime, half_life: f64) -> PathStats {
+    pub fn new(path: String, ref_time: f64, half_life: f32) -> PathStats {
         PathStats {
-            half_life: Rc::new(half_life),
-            reference_time: Rc::new(ref_time),
+            half_life: half_life,
+            reference_time: ref_time,
             path: path.clone(),
             frecency: 0.0,
-            last_accessed: 0,
+            last_accessed: 0.0,
             num_accesses: 0,
         }
     }
@@ -39,7 +37,9 @@ impl PathStats {
     }
 
     fn cmp_recent(&self, other: &PathStats) -> Ordering {
-        self.last_accessed.cmp(&other.last_accessed)
+        self.last_accessed
+          .partial_cmp(&other.last_accessed)
+          .unwrap_or(Ordering::Less)
     }
 
     fn cmp_frecent(&self, other: &PathStats) -> Ordering {
@@ -48,21 +48,21 @@ impl PathStats {
             .unwrap_or(Ordering::Less)
     }
 
-    pub fn update_score(&mut self, weight: f64) {
-        let elapsed_since_ref = secs_elapsed(*self.reference_time);
-        self.frecency += weight * 2.0f64.powf(elapsed_since_ref as f64 / *self.half_life);
+    pub fn update_score(&mut self, weight: f32) {
+        let elapsed_since_ref = secs_elapsed(self.reference_time);
+        self.frecency += weight * 2.0f32.powf(elapsed_since_ref as f32 / self.half_life);
     }
 
-    pub fn update_num_accesses(&mut self, weight: i64) {
+    pub fn update_num_accesses(&mut self, weight: i32) {
         self.num_accesses += weight;
     }
 
     pub fn update_last_access(&mut self) {
-        self.last_accessed = secs_elapsed(*self.reference_time);
+        self.last_accessed = secs_elapsed(self.reference_time);
     }
 
-    pub fn secs_since_access(&self) -> i64 {
-        secs_elapsed(*self.reference_time) - self.last_accessed
+    pub fn secs_since_access(&self) -> f32 {
+        secs_elapsed(self.reference_time) - self.last_accessed
     }
 
     pub fn to_string(&self, method: &SortMethod, show_stats: bool) -> String {
@@ -76,7 +76,7 @@ impl PathStats {
                 SortMethod::Frequent => format!("{: <}\t{}\n", self.num_accesses, self.path),
                 SortMethod::Frecent => format!(
                     "{: <.3}\t{}\n",
-                    self.frecency / 2.0f64.powf(self.secs_since_access() as f64 / *self.half_life),
+                    self.frecency as f32 / 2.0f32.powf(self.secs_since_access() as f32 / self.half_life),
                     self.path
                 ),
             }
@@ -86,11 +86,8 @@ impl PathStats {
     }
 }
 
-pub fn secs_elapsed(ref_time: NaiveDateTime) -> i64 {
-    DateTime::<Utc>::from(SystemTime::now())
-        .naive_local()
-        .signed_duration_since(ref_time)
-        .num_seconds()
+pub fn secs_elapsed(ref_time: f64) -> f32 {
+  (current_time_secs() - ref_time) as f32
 }
 
 
@@ -101,28 +98,28 @@ mod tests {
 
   fn create_low_path() -> PathStats {
     let test_path = "/test/path".to_string();
-    let ref_time = DateTime::<Utc>::from(SystemTime::now()).naive_local();
+    let ref_time = current_time_secs();
 
     PathStats {
-      half_life: Rc::new(10.0),
-      reference_time: Rc::new(ref_time),
+      half_life: 10.0,
+      reference_time: ref_time,
       path: test_path.clone(),
       frecency: 1.0,
-      last_accessed: 100,
+      last_accessed: 100.0,
       num_accesses: 1,
     }
   }
 
   fn create_high_path() -> PathStats {
     let test_path = "/test/path".to_string();
-    let ref_time = DateTime::<Utc>::from(SystemTime::now()).naive_local();
+    let ref_time = current_time_secs();
 
     PathStats {
-      half_life: Rc::new(10.0),
-      reference_time: Rc::new(ref_time),
+      half_life:10.0,
+      reference_time: ref_time,
       path: test_path.clone(),
       frecency: 2.0,
-      last_accessed: 200,
+      last_accessed: 200.0,
       num_accesses: 2,
     }
   }
@@ -130,7 +127,7 @@ mod tests {
   #[test] 
   fn new_path_stats() {
     let test_path = "/test/path".to_string();
-    let ref_time = DateTime::<Utc>::from(SystemTime::now()).naive_local();
+    let ref_time = current_time_secs();
 
     let new_path_stats = PathStats::new(test_path, ref_time, 10.0);
 
@@ -188,7 +185,7 @@ mod tests {
 
     low_path_stats.update_last_access();
 
-    assert_that!(low_path_stats.secs_since_access()).is_equal_to(0);
+    assert_that!(low_path_stats.secs_since_access()).is_close_to(0.0, 0.01);
   }
 
 

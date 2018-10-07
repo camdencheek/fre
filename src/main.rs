@@ -4,7 +4,7 @@ use path_absolutize::*;
 use std::path::PathBuf;
 use std::process;
 use std::str::FromStr;
-use topd::{args, store, SortMethod};
+use topd::{args, SortMethod, serialize};
 
 fn main() {
 
@@ -18,7 +18,7 @@ fn main() {
 
     let store_file = args::get_store_path(&matches); 
 
-    let mut usage = store::read_store(&store_file).unwrap_or_else(|e| {
+    let mut usage = serialize::read_store(&store_file).unwrap_or_else(|e| {
         error!("unable to read store file {:?}: {}", &store_file, e);
         process::exit(1);
     });
@@ -67,11 +67,11 @@ fn main() {
 
     if matches.is_present("increase") || matches.is_present("decrease") {
         let weight = match (matches.value_of("increase"), matches.value_of("decrease")) {
-            (Some(i), None) => f64::from_str(i).unwrap_or_else(|_| {
+            (Some(i), None) => f32::from_str(i).unwrap_or_else(|_| {
                 error!("unable to parse weight from {}", i);
                 process::exit(1);
             }),
-            (None, Some(d)) => -f64::from_str(d).unwrap_or_else(|_| {
+            (None, Some(d)) => -f32::from_str(d).unwrap_or_else(|_| {
                 error!("unable to parse weight from {}", d);
                 process::exit(1);
             }),
@@ -107,7 +107,7 @@ fn main() {
     }
 
 
-    if let Err(e) = store::write_store(&usage, &store_file) {
+    if let Err(e) = serialize::write_store(usage, &store_file) {
         error!("unable to write to store file: {}", e);
         process::exit(2);
     }

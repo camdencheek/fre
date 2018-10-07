@@ -61,6 +61,7 @@ fn add_create() {
   let store_file = common::get_tempfile_path();
   let new_dir = "/home/super_new_dir".to_string();
 
+
   Command::main_binary()
     .unwrap()
     .arg("--store")
@@ -99,7 +100,7 @@ fn add_relative() {
     .assert()
     .success();
 
-  let relative = predicates::str::contains(absolute_dir).from_utf8();
+  let absolute_created_correctly = predicates::str::contains(absolute_dir).from_utf8();
 
   Command::main_binary()
     .unwrap()
@@ -108,7 +109,7 @@ fn add_relative() {
     .arg(&store_file.as_os_str())
     .arg("--sorted")
     .assert()
-    .stdout(relative);
+    .stdout(absolute_created_correctly);
 
 }
 
@@ -120,7 +121,6 @@ fn increase_accesses() {
 
   Command::main_binary()
     .unwrap()
-    .current_dir(std::env::temp_dir().as_os_str())
     .arg("--store")
     .arg(&store_file.as_os_str())
     .arg("--increase")
@@ -133,7 +133,6 @@ fn increase_accesses() {
 
   Command::main_binary()
     .unwrap()
-    .current_dir(std::env::temp_dir().as_os_str())
     .arg("--store")
     .arg(&store_file.as_os_str())
     .arg("--stat")
