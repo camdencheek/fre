@@ -5,6 +5,8 @@ use std::default::Default;
 use std::io::{self, BufWriter, Write};
 use std::path::Path;
 use std::time::SystemTime;
+use std::process;
+use log::error;
 
 pub struct UsageStore {
     pub reference_time: f64,
@@ -27,13 +29,6 @@ impl UsageStore {
         self.paths.retain(|dir| Path::new(&dir.path).exists());
     }
 
-    pub fn sorted(&self, sort_method: &SortMethod) -> Vec<PathStats> {
-        let mut new_vec = self.paths.clone();
-
-        new_vec.sort_by(|dir1, dir2| dir1.cmp_score(dir2, sort_method).reverse());
-
-        new_vec
-    }
 
     pub fn truncate(&mut self, keep_num: usize, sort_method: &SortMethod) {
         let mut sorted_vec = self.sorted(sort_method);
@@ -58,18 +53,6 @@ impl UsageStore {
         path_stats.update_num_accesses(weight as i32);
     }
 
-    fn get(&mut self, path: &str) -> &mut PathStats {
-        match self.paths.binary_search_by_key(&path, |dir_stats| &dir_stats.path) {
-            Ok(idx) => &mut self.paths[idx],
-            Err(idx) => {
-                self.paths.insert(
-                    idx,
-                    PathStats::new(path.to_string(), self.reference_time, self.half_life),
-                );
-                &mut self.paths[idx]
-            }
-        }
-    }
 
     pub fn print_sorted(&self, method: &SortMethod, show_stats: bool, limit: Option<usize>) {
 
@@ -82,8 +65,211 @@ impl UsageStore {
 
         for dir in sorted.iter().take(take_num) {
           writer.write_all(dir.to_string(method, show_stats).as_bytes())
-            .expect("Unable to write to stdout");
+            .unwrap_or_else(|e| {
+              error!("unable to write to stdout: {}", e);
+              process::exit(1);
+            });
+        }
+    }
+
+    fn sorted(&self, sort_method: &SortMethod) -> Vec<PathStats> {
+        let mut new_vec = self.paths.clone();
+        new_vec.sort_by(|dir1, dir2| {
+          dir1.cmp_score(dir2, sort_method).reverse()
+        });
+
+        new_vec
+    }
+
+    fn get(&mut self, path: &str) -> &mut PathStats {
+        match self.paths.binary_search_by_key(&path, |dir_stats| &dir_stats.path) {
+            Ok(idx) => return &mut self.paths[idx],
+            Err(idx) => {
+                self.paths.insert(
+                    idx,
+                    PathStats::new(path.to_string(), self.reference_time, self.half_life),
+                );
+                return &mut self.paths[idx]
+            }
         }
     }
 }
 
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use spectral::prelude::*;
+
+  fn create_usage() -> UsageStore {
+    UsageStore {
+      reference_time: current_time_secs(),
+      half_life: 1.0,
+      paths: Vec::new()
+    }
+  }
+
+  #[test]
+  fn add_new() {
+    let mut usage = create_usage();
+
+    usage.add("test");
+
+    assert_that!(usage.paths.len()).is_equal_to(1);
+    assert_that!(usage.get("test").half_life).is_close_to(1.0, 0.001);
+    assert_that!(usage.get("test").num_accesses).is_equal_to(1);
+    assert_that!(usage.get("test").frecency).is_close_to(1.0, 0.01);
+    assert_that!(usage.get("test").last_accessed).is_close_to(0.0, 0.1);
+  }
+
+  #[test]
+  fn add_existing() {
+    let mut usage = create_usage();
+
+    usage.add("test");
+    usage.add("test");
+
+    assert_that!(usage.paths.len()).is_equal_to(1);
+    assert_that!(usage.get("test").half_life).is_close_to(1.0, 0.001);
+    assert_that!(usage.get("test").num_accesses).is_equal_to(2);
+    assert_that!(usage.get("test").frecency).is_close_to(2.0, 0.01);
+    assert_that!(usage.get("test").last_accessed).is_close_to(0.0, 0.1);
+  }
+
+  #[test]
+  fn adjust_existing() {
+    let mut usage = create_usage();
+
+    usage.add("test");
+    usage.adjust("test", 3.0);
+
+    assert_that!(usage.paths.len()).is_equal_to(1);
+    assert_that!(usage.get("test").half_life).is_close_to(1.0, 0.001);
+    assert_that!(usage.get("test").num_accesses).is_equal_to(4);
+    assert_that!(usage.get("test").frecency).is_close_to(4.0, 0.01);
+    assert_that!(usage.get("test").last_accessed).is_close_to(0.0, 0.1);
+  }
+
+  #[test]
+  fn adjust_new() {
+    let mut usage = create_usage();
+     
+    usage.adjust("test", 3.0);
+
+    assert_that!(usage.paths.len()).is_equal_to(1);
+    assert_that!(usage.get("test").half_life).is_close_to(1.0, 0.001);
+    assert_that!(usage.get("test").num_accesses).is_equal_to(3);
+    assert_that!(usage.get("test").frecency).is_close_to(3.0, 0.01);
+    assert_that!(usage.get("test").last_accessed).is_close_to(0.0, 0.1);
+  }
+
+
+  #[test]
+  fn purge_exists() {
+    let mut usage = create_usage();  
+    let file = tempfile::NamedTempFile::new().unwrap().into_temp_path();
+    let path = file
+      .as_os_str()
+      .to_str()
+      .unwrap();
+    usage.add(path);
+    
+    usage.purge();
+    assert_that!(usage.paths.len()).is_equal_to(1);
+  }  
+
+  #[test]
+  fn purge_not_exists() {
+    let mut usage = create_usage();  
+    usage.add("/nonexistant_dir");
+    
+    usage.purge();
+    assert_that!(usage.paths.len()).is_equal_to(0);
+  }  
+
+  #[test]
+  fn truncate_greater() {
+    let mut usage = create_usage();  
+    usage.add("dir1");
+    usage.add("dir2");
+
+    usage.truncate(1, &SortMethod::Recent);
+
+    assert_that!(usage.paths.len()).is_equal_to(1);
+  }
+
+  #[test]
+  fn truncate_less() {
+    let mut usage = create_usage();  
+    usage.add("dir1");
+    usage.add("dir2");
+
+    usage.truncate(3, &SortMethod::Recent);
+
+    assert_that!(usage.paths.len()).is_equal_to(2);
+  }
+
+  #[test]
+  fn sorted_frecent() {
+    let mut usage = create_usage();
+    usage.add("dir1");
+    usage.add("dir2");
+    usage.get("dir2").frecency = 100.0;
+
+    let sorted = usage.sorted(&SortMethod::Frecent);
+
+    assert_that!(sorted.len()).is_equal_to(2);
+    assert_that!(sorted[0].path).is_equal_to("dir2".to_string());
+  }
+
+  #[test]
+  fn sorted_recent() {
+    let mut usage = create_usage();
+    usage.add("dir1");
+    usage.add("dir2");
+    usage.get("dir2").last_accessed = 100.0;
+
+    let sorted = usage.sorted(&SortMethod::Recent);
+
+    assert_that!(sorted.len()).is_equal_to(2);
+    assert_that!(sorted[0].path).is_equal_to("dir2".to_string());
+  }
+
+  #[test]
+  fn sorted_frequent() {
+    let mut usage = create_usage();
+    usage.add("dir1");
+    usage.add("dir2");
+    usage.get("dir2").num_accesses = 100;
+
+    let sorted = usage.sorted(&SortMethod::Frequent);
+
+    assert_that!(sorted.len()).is_equal_to(2);
+    assert_that!(sorted[0].path).is_equal_to("dir2".to_string());
+  }
+
+  #[test]
+  fn get_exists() {
+    let mut usage = create_usage();
+    usage.adjust("dir1", 100.0);
+
+    {
+      let stats = usage.get("dir1");
+      assert_that!(stats.num_accesses).is_equal_to(100);
+    }
+
+    assert_that!(usage.paths.len()).is_equal_to(1);
+  }
+
+  #[test]
+  fn get_not_exists() {
+    let mut usage = create_usage();
+    usage.add("dir1");
+
+    {
+      let stats = usage.get("dir2");
+      assert_that!(stats.path).is_equal_to("dir2".to_string());
+    }
+
+    assert_that!(usage.paths.len()).is_equal_to(2);
+  }
+}
