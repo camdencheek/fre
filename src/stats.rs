@@ -60,7 +60,6 @@ impl PathStats {
     pub fn get_frecency(&self) -> f32 {
         self.frecency / 2.0f32.powf(
           self.secs_since_access() as f32 / self.half_life)
-          
     }
 
     pub fn update_last_access(&mut self) {

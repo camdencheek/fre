@@ -36,12 +36,21 @@ impl UsageStore {
         self.paths = sorted_vec;
     }
 
-    pub fn reset_time(&mut self, time: SystemTime) {
-        unimplemented!();
+    pub fn reset_time(&mut self) {
+      let current_time = current_time_secs();
+      let delta = current_time - self.reference_time;
+      
+      self.reference_time = current_time;
+
+      for path in self.paths.iter_mut() {
+        path.reference_time = current_time;
+        path.last_accessed -= delta as f32;
+      }
     }
 
     pub fn add(&mut self, path: &str) {
         let path_stats = self.get(&path);
+
         path_stats.update_score(1.0);
         path_stats.update_num_accesses(1);
         path_stats.update_last_access();
@@ -49,6 +58,7 @@ impl UsageStore {
 
     pub fn adjust(&mut self, path: &str, weight: f32) {
         let path_stats = self.get(&path);
+
         path_stats.update_score(weight);
         path_stats.update_num_accesses(weight as i32);
     }
@@ -271,5 +281,19 @@ mod tests {
     }
 
     assert_that!(usage.paths.len()).is_equal_to(2);
+  }
+
+  #[test]
+  fn reset_time() {
+    let mut usage = create_usage();
+    let current_time = current_time_secs();
+    usage.reference_time = current_time - 10.0;
+    usage.get("test1").last_accessed = 5.0;
+
+    usage.reset_time(); 
+
+    assert_that!(usage.reference_time).is_close_to(current_time, 0.1);
+    assert_that!(usage.get("test1").reference_time).is_close_to(current_time,0.1);
+    assert_that!(usage.get("test1").last_accessed).is_close_to(-5.0,0.1);
   }
 }
