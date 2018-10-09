@@ -9,7 +9,6 @@ use std::process;
 pub mod args;
 pub mod stats;
 pub mod store;
-pub mod serialize;
 
 #[derive(Debug)]
 pub enum SortMethod {
@@ -27,4 +26,5 @@ pub fn current_time_secs() -> f64 {
     }
   }
 }
+
 

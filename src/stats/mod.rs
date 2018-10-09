@@ -2,6 +2,8 @@ use super::SortMethod;
 use super::current_time_secs;
 use std::cmp::Ordering;
 
+pub mod serialize;
+
 #[derive(Clone)]
 pub struct PathStats {
     pub path: String,

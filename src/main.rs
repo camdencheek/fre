@@ -4,7 +4,7 @@ use path_absolutize::*;
 use std::path::PathBuf;
 use std::process;
 use std::str::FromStr;
-use topd::{args, SortMethod, serialize};
+use topd::{args, store, SortMethod};
 
 fn main() {
 
@@ -18,7 +18,7 @@ fn main() {
 
     let store_file = args::get_store_path(&matches); 
 
-    let mut usage = serialize::read_store(&store_file).unwrap_or_else(|e| {
+    let mut usage = store::read_store(&store_file).unwrap_or_else(|e| {
         error!("unable to read store file {:?}: {}", &store_file, e);
         process::exit(1);
     });
@@ -107,7 +107,7 @@ fn main() {
     }
 
 
-    if let Err(e) = serialize::write_store(usage, &store_file) {
+    if let Err(e) = store::write_store(usage, &store_file) {
         error!("unable to write to store file: {}", e);
         process::exit(2);
     }

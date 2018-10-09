@@ -1,16 +1,40 @@
+mod serialize;
+
 use super::stats::PathStats;
 use super::current_time_secs;
 use super::SortMethod;
 use std::default::Default;
-use std::io::{self, BufWriter, Write};
-use std::path::Path;
+use std::io::{self, BufWriter,BufReader, Write};
+use std::fs::{self, File};
+use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 use std::process;
 use log::error;
 
+pub fn read_store(path: &PathBuf) -> Result<UsageStore, io::Error> {
+    if path.is_file() {
+        let file = File::open(&path)?;
+        let reader = BufReader::new(file);
+        let store: serialize::UsageStoreSerializer = serde_json::from_reader(reader)?;
+        Ok(UsageStore::from(store))
+    } else {
+        Ok(UsageStore::default())
+    }
+}
+
+pub fn write_store(store: UsageStore, path: &PathBuf) -> io::Result<()> {
+    let store_dir = path.parent().expect("file must have parent");
+    fs::create_dir_all(&store_dir)?;
+    let file = File::create(&path)?;
+    let writer = BufWriter::new(file);
+    serde_json::to_writer_pretty(writer, &serialize::UsageStoreSerializer::from(store))?;
+
+    return Ok(());
+}
+
 pub struct UsageStore {
-    pub reference_time: f64,
-    pub half_life: f32,
+    reference_time: f64,
+    half_life: f32,
     pub paths: Vec<PathStats>,
 }
 
