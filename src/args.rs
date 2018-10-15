@@ -19,6 +19,7 @@ pub fn get_app() -> App<'static,'static> {
         .setting(AppSettings::ColorAuto)
         .setting(AppSettings::ColoredHelp)
         .setting(AppSettings::DeriveDisplayOrder)
+        .setting(AppSettings::NextLineHelp)
         .arg(Arg::with_name("add")
                 .short("a")
                 .long("add")
