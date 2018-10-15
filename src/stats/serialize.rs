@@ -18,3 +18,17 @@ impl From<PathStats> for PathStatsSerializer {
     }
   }
 }
+
+impl PathStatsSerializer {
+  pub fn into_path_stats(self, ref_time: f64, half_life: f32) -> PathStats {
+    PathStats {
+      half_life: half_life,
+      reference_time: ref_time,
+      path: self.path,
+      frecency: self.frecency,
+      last_accessed: self.last_accessed,
+      num_accesses: self.num_accesses
+    }
+  }
+}
+

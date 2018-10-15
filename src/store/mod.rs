@@ -62,13 +62,11 @@ impl UsageStore {
 
     pub fn reset_time(&mut self) {
       let current_time = current_time_secs();
-      let delta = current_time - self.reference_time;
       
       self.reference_time = current_time;
 
       for path in self.paths.iter_mut() {
-        path.reference_time = current_time;
-        path.last_accessed -= delta as f32;
+        path.reset_ref_time(current_time);
       }
     }
 
@@ -77,7 +75,7 @@ impl UsageStore {
 
         path_stats.update_score(1.0);
         path_stats.update_num_accesses(1);
-        path_stats.update_last_access();
+        path_stats.update_last_access(current_time_secs());
     }
 
     pub fn adjust(&mut self, path: &str, weight: f32) {
@@ -149,10 +147,6 @@ mod tests {
     usage.add("test");
 
     assert_that!(usage.paths.len()).is_equal_to(1);
-    assert_that!(usage.get("test").half_life).is_close_to(1.0, 0.001);
-    assert_that!(usage.get("test").num_accesses).is_equal_to(1);
-    assert_that!(usage.get("test").frecency).is_close_to(1.0, 0.01);
-    assert_that!(usage.get("test").last_accessed).is_close_to(0.0, 0.1);
   }
 
   #[test]
@@ -163,10 +157,6 @@ mod tests {
     usage.add("test");
 
     assert_that!(usage.paths.len()).is_equal_to(1);
-    assert_that!(usage.get("test").half_life).is_close_to(1.0, 0.001);
-    assert_that!(usage.get("test").num_accesses).is_equal_to(2);
-    assert_that!(usage.get("test").frecency).is_close_to(2.0, 0.01);
-    assert_that!(usage.get("test").last_accessed).is_close_to(0.0, 0.1);
   }
 
   #[test]
@@ -177,10 +167,6 @@ mod tests {
     usage.adjust("test", 3.0);
 
     assert_that!(usage.paths.len()).is_equal_to(1);
-    assert_that!(usage.get("test").half_life).is_close_to(1.0, 0.001);
-    assert_that!(usage.get("test").num_accesses).is_equal_to(4);
-    assert_that!(usage.get("test").frecency).is_close_to(4.0, 0.01);
-    assert_that!(usage.get("test").last_accessed).is_close_to(0.0, 0.1);
   }
 
   #[test]
@@ -190,10 +176,6 @@ mod tests {
     usage.adjust("test", 3.0);
 
     assert_that!(usage.paths.len()).is_equal_to(1);
-    assert_that!(usage.get("test").half_life).is_close_to(1.0, 0.001);
-    assert_that!(usage.get("test").num_accesses).is_equal_to(3);
-    assert_that!(usage.get("test").frecency).is_close_to(3.0, 0.01);
-    assert_that!(usage.get("test").last_accessed).is_close_to(0.0, 0.1);
   }
 
 
@@ -247,7 +229,7 @@ mod tests {
     let mut usage = create_usage();
     usage.add("dir1");
     usage.add("dir2");
-    usage.get("dir2").frecency = 100.0;
+    usage.get("dir2").update_score(1000.0);
 
     let sorted = usage.sorted(&SortMethod::Frecent);
 
@@ -260,7 +242,7 @@ mod tests {
     let mut usage = create_usage();
     usage.add("dir1");
     usage.add("dir2");
-    usage.get("dir2").last_accessed = 100.0;
+    usage.get("dir2").update_last_access(current_time_secs() + 100.0);
 
     let sorted = usage.sorted(&SortMethod::Recent);
 
@@ -273,7 +255,7 @@ mod tests {
     let mut usage = create_usage();
     usage.add("dir1");
     usage.add("dir2");
-    usage.get("dir2").num_accesses = 100;
+    usage.get("dir2").update_num_accesses(100);
 
     let sorted = usage.sorted(&SortMethod::Frequent);
 
@@ -284,12 +266,9 @@ mod tests {
   #[test]
   fn get_exists() {
     let mut usage = create_usage();
-    usage.adjust("dir1", 100.0);
+    usage.add("dir1");
 
-    {
-      let stats = usage.get("dir1");
-      assert_that!(stats.num_accesses).is_equal_to(100);
-    }
+    let stats = usage.get("dir1");
 
     assert_that!(usage.paths.len()).is_equal_to(1);
   }
@@ -299,10 +278,7 @@ mod tests {
     let mut usage = create_usage();
     usage.add("dir1");
 
-    {
-      let stats = usage.get("dir2");
-      assert_that!(stats.path).is_equal_to("dir2".to_string());
-    }
+    let stats = usage.get("dir2");
 
     assert_that!(usage.paths.len()).is_equal_to(2);
   }
@@ -312,12 +288,9 @@ mod tests {
     let mut usage = create_usage();
     let current_time = current_time_secs();
     usage.reference_time = current_time - 10.0;
-    usage.get("test1").last_accessed = 5.0;
 
     usage.reset_time(); 
 
     assert_that!(usage.reference_time).is_close_to(current_time, 0.1);
-    assert_that!(usage.get("test1").reference_time).is_close_to(current_time,0.1);
-    assert_that!(usage.get("test1").last_accessed).is_close_to(-5.0,0.1);
   }
 }

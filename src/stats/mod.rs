@@ -7,11 +7,11 @@ pub mod serialize;
 #[derive(Clone)]
 pub struct PathStats {
     pub path: String,
-    pub half_life: f32,
-    pub reference_time: f64,
-    pub frecency: f32,
-    pub last_accessed: f32,
-    pub num_accesses: i32
+    half_life: f32,
+    reference_time: f64,
+    frecency: f32,
+    last_accessed: f32,
+    num_accesses: i32
 }
 
 impl PathStats {
@@ -64,8 +64,14 @@ impl PathStats {
           self.secs_since_access() as f32 / self.half_life)
     }
 
-    pub fn update_last_access(&mut self) {
-        self.last_accessed = secs_elapsed(self.reference_time);
+    pub fn update_last_access(&mut self, time: f64) {
+        self.last_accessed = (time - self.reference_time) as f32;
+    }
+
+    pub fn reset_ref_time(&mut self, time: f64) {
+      let delta = self.reference_time - time;
+      self.reference_time = time;
+      self.last_accessed += delta as f32;
     }
 
     pub fn secs_since_access(&self) -> f32 {
@@ -188,7 +194,7 @@ mod tests {
   fn update_last_access() {
     let mut low_path_stats = create_path();
 
-    low_path_stats.update_last_access();
+    low_path_stats.update_last_access(current_time_secs());
 
     assert_that!(low_path_stats.secs_since_access()).is_close_to(0.0, 0.1);
   }
@@ -255,5 +261,18 @@ mod tests {
     let one_second_ago = current_time_secs() - 1.0;
 
     assert_that!(secs_elapsed(one_second_ago)).is_close_to(1.0, 0.1);
+  }
+
+  #[test]
+  fn reset_time() {
+    let mut low_path_stats = create_path();
+    let current_time = current_time_secs();
+    low_path_stats.reference_time = current_time - 5.0;
+    low_path_stats.last_accessed = 10.0;
+
+    low_path_stats.reset_ref_time(current_time);
+
+    assert_that!(low_path_stats.reference_time).is_close_to(current_time, 0.1);
+    assert_that!(low_path_stats.last_accessed).is_close_to(5.0, 0.1);
   }
 }

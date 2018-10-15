@@ -29,17 +29,8 @@ impl From<UsageStoreSerializer> for UsageStore {
     let half_life = store.half_life;
     let paths = store.paths
       .into_iter()
-      .map(|serializer| {
-        PathStats {
-          half_life: half_life,
-          reference_time: ref_time,
-          path: serializer.path,
-          frecency: serializer.frecency,
-          last_accessed: serializer.last_accessed,
-          num_accesses: serializer.num_accesses
-        }
-      })
-    .collect();
+      .map(|s| s.into_path_stats(ref_time, half_life))
+      .collect();
 
     UsageStore {
       reference_time: store.reference_time,
