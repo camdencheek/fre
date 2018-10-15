@@ -7,7 +7,6 @@ use std::default::Default;
 use std::io::{self, BufWriter,BufReader, Write};
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
-use std::time::SystemTime;
 use std::process;
 use log::error;
 
