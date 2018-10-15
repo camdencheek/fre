@@ -27,6 +27,7 @@ export FZF_CTRL_T_OPTS='--tiebreak=index'
 ### Shell integration
 
 #### zsh
+(credit to `fzf`)
 
 ```zsh
 topd_chpwd() {
@@ -38,21 +39,8 @@ chpwd_functions+=topd_chpwd
 
 More shells to come
 
-### Other stuff
-
-You can also track most used files in vim
-```viml
-" Topd integration
-function IncrementTopd()
-  execute  "!topd --store_name 'files.json' --add " . expand('%:p')
-endfunction
-autocmd BufNewFile,BufReadPost * call IncrementTopd()
-```
-
 
 ## TODO 
 
-- [ ] Implement automatic re-scaling to prevent overflow
-- [ ] Investigate supporting multiple half-lives for more flexible decay rates
 - [ ] Allow custom half-lives
-- [ ] Figure out how to get Serde to serialize/deserialize with rc pointers
+- [ ] Investigate supporting multiple half-lives for more flexible decay rates
