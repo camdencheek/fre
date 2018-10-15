@@ -3,7 +3,7 @@ use tempfile;
 use std::collections::HashMap;
 use predicates::{self,Predicate};
 use std::str;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime};
 
 
 pub fn get_tempfile_path() -> tempfile::TempPath {
