@@ -33,7 +33,7 @@ fn non_writable() {
     .arg("/testdir")
     .arg("--sorted")
     .assert()
-    .code(2)
+    .code(1)
     .stdout(empty)
     .stderr(error);
 }

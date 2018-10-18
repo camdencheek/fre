@@ -27,4 +27,12 @@ pub fn current_time_secs() -> f64 {
   }
 }
 
-
+#[macro_export]
+macro_rules! error_and_exit {
+    ($($arg:tt)*) => {
+        {
+            error!($($arg)*);
+            ::std::process::exit(1);
+        }
+    };
+}
