@@ -42,5 +42,4 @@ More shells to come
 
 ## TODO 
 
-- [ ] Allow custom half-lives
 - [ ] Investigate supporting multiple half-lives for more flexible decay rates

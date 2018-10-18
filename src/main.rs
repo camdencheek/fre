@@ -26,6 +26,15 @@ fn main() {
     if matches.is_present("purge") {
         usage.purge();
     }
+    
+    if let Some(h) = matches.value_of("halflife") {
+      let half_life = h.parse::<f32>().unwrap_or_else(|_| {
+        error!("invalid half life '{}'", h);
+        process::exit(1);
+      });
+
+      usage.set_half_life(half_life);
+    }
 
     let sort_method = match matches.value_of("sort_method") {
         Some("recent") => SortMethod::Recent,

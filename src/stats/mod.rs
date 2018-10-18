@@ -59,6 +59,13 @@ impl PathStats {
         self.num_accesses += weight;
     }
 
+    pub fn set_half_life(&mut self, half_life: f32) {
+      self.frecency = self.frecency * 2.0f32.powf(
+        secs_elapsed(self.reference_time) as f32 * (1.0 / self.half_life - 1.0 / half_life));
+
+      self.half_life = half_life
+    }
+
     pub fn get_frecency(&self) -> f32 {
         self.frecency / 2.0f32.powf(
           self.secs_since_access() as f32 / self.half_life)
@@ -274,5 +281,19 @@ mod tests {
 
     assert_that!(low_path_stats.reference_time).is_close_to(current_time, 0.1);
     assert_that!(low_path_stats.last_accessed).is_close_to(5.0, 0.1);
+  }
+
+  #[test]
+  fn set_half_life() {
+    let mut low_path_stats = create_path();
+    let current_time = current_time_secs();
+    low_path_stats.reference_time = current_time - 2.0;
+    low_path_stats.last_accessed = 1.0;
+    let original_frecency = low_path_stats.get_frecency();
+
+    low_path_stats.set_half_life(2.0);
+
+    assert_that!(low_path_stats.half_life).is_equal_to(2.0);
+    assert_that!(low_path_stats.get_frecency()).is_close_to(original_frecency, 0.01);
   }
 }

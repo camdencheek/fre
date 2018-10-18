@@ -156,3 +156,51 @@ fn limit_too_many() {
     .stdout(three_lines);
 
 }
+
+#[test]
+fn change_half_life_maintain_frecency() {
+  let store_file = common::get_tempfile_path();
+  
+  Command::main_binary()
+    .unwrap()
+    .arg("--store")
+    .arg(&store_file.as_os_str())
+    .arg("--halflife")
+    .arg("1000")
+    .assert()
+    .success();
+
+  let score_same = common::path_score_approx_equal("/".to_string(), 1.0);
+
+  Command::main_binary()
+    .unwrap()
+    .arg("--store")
+    .arg(&store_file.as_os_str())
+    .arg("--stat")
+    .assert()
+    .stdout(score_same);
+}
+
+#[test]
+fn change_half_life_new_decay() {
+  let store_file = common::get_tempfile_path();
+  
+  Command::main_binary()
+    .unwrap()
+    .arg("--store")
+    .arg(&store_file.as_os_str())
+    .arg("--halflife")
+    .arg("100.0")
+    .assert()
+    .success();
+
+  let score_half = common::path_score_approx_equal("/home".to_string(), 1.5);
+
+  Command::main_binary()
+    .unwrap()
+    .arg("--store")
+    .arg(&store_file.as_os_str())
+    .arg("--stat")
+    .assert()
+    .stdout(score_half);
+}

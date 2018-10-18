@@ -23,19 +23,19 @@ pub fn get_tempfile_path() -> tempfile::TempPath {
         {{
           "path": "/home",
           "frecency": 3.0,
-          "last_accessed": 10.0,
+          "last_accessed": -100.0,
           "num_accesses": 2
         }},
         {{
           "path": "/home/nonexistant_dir",
           "frecency": 2.0,
-          "last_accessed": 30.0,
+          "last_accessed": 1.0,
           "num_accesses": 1
         }},
         {{
           "path": "/",
           "frecency": 1.0,
-          "last_accessed": 20.0,
+          "last_accessed": 0.0,
           "num_accesses": 3
         }}
       ]

@@ -52,7 +52,6 @@ impl UsageStore {
         self.paths.retain(|dir| Path::new(&dir.path).exists());
     }
 
-
     pub fn truncate(&mut self, keep_num: usize, sort_method: &SortMethod) {
         let mut sorted_vec = self.sorted(sort_method);
         sorted_vec.truncate(keep_num);
@@ -66,6 +65,15 @@ impl UsageStore {
 
       for path in self.paths.iter_mut() {
         path.reset_ref_time(current_time);
+      }
+    }
+
+    pub fn set_half_life(&mut self, half_life: f32) {
+      self.reset_time();
+      self.half_life = half_life;
+      
+      for path in self.paths.iter_mut() {
+        path.set_half_life(half_life);
       }
     }
 
@@ -277,7 +285,7 @@ mod tests {
     let mut usage = create_usage();
     usage.add("dir1");
 
-    let stats = usage.get("dir2");
+    usage.get("dir2");
 
     assert_that!(usage.paths.len()).is_equal_to(2);
   }
@@ -287,9 +295,28 @@ mod tests {
     let mut usage = create_usage();
     let current_time = current_time_secs();
     usage.reference_time = current_time - 10.0;
+    usage.add("test");
+    let original_frecency = usage.get("test").get_frecency();
 
     usage.reset_time(); 
 
     assert_that!(usage.reference_time).is_close_to(current_time, 0.1);
+    assert_that!(usage.get("test").get_frecency()).is_close_to(original_frecency, 0.1)
+  }
+
+  #[test]
+  fn set_halflife() {
+    let mut usage = create_usage();
+    let current_time = current_time_secs();
+    usage.reference_time = current_time - 10.0;
+    usage.add("dir1");
+    let original_frecency = usage.get("dir1").get_frecency();
+
+    usage.set_half_life(10.0);
+
+    let new_frecency = usage.get("dir1").get_frecency();
+
+    assert_that!(usage.half_life).is_close_to(10.0, 0.01);
+    assert_that!(new_frecency).is_close_to(original_frecency, 0.01);
   }
 }
