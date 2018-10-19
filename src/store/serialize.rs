@@ -18,7 +18,7 @@ impl From<UsageStore> for UsageStoreSerializer {
     UsageStoreSerializer {
       reference_time: store.reference_time,
       half_life: store.half_life,
-      paths: paths
+      paths
     }
   }
 }
@@ -35,7 +35,7 @@ impl From<UsageStoreSerializer> for UsageStore {
     UsageStore {
       reference_time: store.reference_time,
       half_life: store.half_life,
-      paths: paths
+      paths
     }
   }
 } 

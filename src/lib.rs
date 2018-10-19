@@ -17,6 +17,7 @@ pub enum SortMethod {
     Frecent,
 }
 
+/// Return the current time in seconds as a float
 pub fn current_time_secs() -> f64 {
   match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
     Ok(n) => n.as_millis() as f64 / 1000.0,

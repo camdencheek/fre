@@ -10,6 +10,7 @@ use std::path::{Path, PathBuf};
 use std::process;
 use log::error;
 
+/// Parses the file at `path` into a `UsageStore` object
 pub fn read_store(path: &PathBuf) -> Result<UsageStore, io::Error> {
     if path.is_file() {
         let file = File::open(&path)?;
@@ -21,6 +22,7 @@ pub fn read_store(path: &PathBuf) -> Result<UsageStore, io::Error> {
     }
 }
 
+/// Serializes and writes a `UsageStore` to a file
 pub fn write_store(store: UsageStore, path: &PathBuf) -> io::Result<()> {
     let store_dir = path.parent().expect("file must have parent");
     fs::create_dir_all(&store_dir)?;
@@ -28,9 +30,10 @@ pub fn write_store(store: UsageStore, path: &PathBuf) -> io::Result<()> {
     let writer = BufWriter::new(file);
     serde_json::to_writer_pretty(writer, &serialize::UsageStoreSerializer::from(store))?;
 
-    return Ok(());
+    Ok(())
 }
 
+/// A collection of statistics about paths
 pub struct UsageStore {
     reference_time: f64,
     half_life: f32,
@@ -48,16 +51,20 @@ impl Default for UsageStore {
 }
 
 impl UsageStore {
+
+    /// Remove all paths from the store that do not exist
     pub fn purge(&mut self) {
         self.paths.retain(|dir| Path::new(&dir.path).exists());
     }
 
+    /// Remove all but the top N (sorted by `sort_method`) from the `UsageStore`
     pub fn truncate(&mut self, keep_num: usize, sort_method: &SortMethod) {
         let mut sorted_vec = self.sorted(sort_method);
         sorted_vec.truncate(keep_num);
         self.paths = sorted_vec;
     }
 
+    /// Reset the reference time to now, and reweight all the statistics to reflect that
     pub fn reset_time(&mut self) {
       let current_time = current_time_secs();
       
@@ -68,6 +75,7 @@ impl UsageStore {
       }
     }
 
+    /// Change the half life and reweight such that frecency does not change
     pub fn set_half_life(&mut self, half_life: f32) {
       self.reset_time();
       self.half_life = half_life;
@@ -77,22 +85,25 @@ impl UsageStore {
       }
     }
 
+    /// Log a visit to a path
     pub fn add(&mut self, path: &str) {
         let path_stats = self.get(&path);
 
-        path_stats.update_score(1.0);
+        path_stats.update_frecency(1.0);
         path_stats.update_num_accesses(1);
         path_stats.update_last_access(current_time_secs());
     }
 
+    /// Adjust the score of a path by a given weight
     pub fn adjust(&mut self, path: &str, weight: f32) {
         let path_stats = self.get(&path);
 
-        path_stats.update_score(weight);
+        path_stats.update_frecency(weight);
         path_stats.update_num_accesses(weight as i32);
     }
 
 
+    /// Print out all the paths, sorted by `method`, with an optional maximum of `limit`
     pub fn print_sorted(&self, method: &SortMethod, show_stats: bool, limit: Option<usize>) {
 
         let stdout = io::stdout();
@@ -100,7 +111,7 @@ impl UsageStore {
         let mut writer = BufWriter::new(handle);
 
         let sorted = self.sorted(method);
-        let take_num = limit.unwrap_or(sorted.len());
+        let take_num = limit.unwrap_or_else(|| sorted.len());
 
         for dir in sorted.iter().take(take_num) {
           writer.write_all(dir.to_string(method, show_stats).as_bytes())
@@ -111,6 +122,7 @@ impl UsageStore {
         }
     }
 
+    /// Return a sorted vector of all the paths in the store, sorted by `sort_method`
     fn sorted(&self, sort_method: &SortMethod) -> Vec<PathStats> {
         let mut new_vec = self.paths.clone();
         new_vec.sort_by(|dir1, dir2| {
@@ -120,15 +132,17 @@ impl UsageStore {
         new_vec
     }
 
+    /// Retrieve a mutable reference to a path in the store.
+    /// If the path does not exist, create it and return a reference to the created path
     fn get(&mut self, path: &str) -> &mut PathStats {
         match self.paths.binary_search_by_key(&path, |dir_stats| &dir_stats.path) {
-            Ok(idx) => return &mut self.paths[idx],
+            Ok(idx) => &mut self.paths[idx],
             Err(idx) => {
                 self.paths.insert(
                     idx,
-                    PathStats::new(path.to_string(), self.reference_time, self.half_life),
+                    PathStats::new(path, self.reference_time, self.half_life),
                 );
-                return &mut self.paths[idx]
+                &mut self.paths[idx]
             }
         }
     }
@@ -236,7 +250,7 @@ mod tests {
     let mut usage = create_usage();
     usage.add("dir1");
     usage.add("dir2");
-    usage.get("dir2").update_score(1000.0);
+    usage.get("dir2").update_frecency(1000.0);
 
     let sorted = usage.sorted(&SortMethod::Frecent);
 

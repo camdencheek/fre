@@ -2,7 +2,6 @@ use log::error;
 use env_logger;
 use path_absolutize::*;
 use std::path::PathBuf;
-use std::process;
 use std::str::FromStr;
 use topd::*;
 
@@ -31,7 +30,7 @@ fn main() {
     if let Some(h) = matches.value_of("halflife") {
         let half_life = match h.parse::<f32>() {
             Ok(h) => h,
-            Err(e) => error_and_exit!("invalid half life '{}'", h)
+            Err(_) => error_and_exit!("invalid half life '{}'", h)
         };
 
         usage.set_half_life(half_life);
@@ -52,7 +51,7 @@ fn main() {
         if let Some(s) = matches.value_of("limit") {
             match s.parse::<usize>() {
                 Ok(l) => usage.print_sorted(&sort_method, matches.is_present("stat"), Some(l)),
-                Err(e) => error_and_exit!("invalid limit '{}'", s)
+                Err(_) => error_and_exit!("invalid limit '{}'", s)
             };
         } else {
             usage.print_sorted(&sort_method, matches.is_present("stat"), None);
