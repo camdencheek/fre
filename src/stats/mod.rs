@@ -1,6 +1,7 @@
 use super::SortMethod;
 use super::current_time_secs;
 use std::cmp::Ordering;
+
 pub mod serialize;
 
 /// A representation of statistics for a single path
@@ -11,11 +12,10 @@ pub struct PathStats {
     reference_time: f64,
     frecency: f32,
     last_accessed: f32,
-    num_accesses: i32
+    num_accesses: i32,
 }
 
 impl PathStats {
-
     /// Create a new path
     pub fn new(path: &str, ref_time: f64, half_life: f32) -> PathStats {
         PathStats {
@@ -200,7 +200,7 @@ mod tests {
 
         low_path_stats.update_frecency(1.0);
 
-        assert_that!(low_path_stats.frecency).is_close_to(1.0,0.01);
+        assert_that!(low_path_stats.frecency).is_close_to(1.0, 0.01);
         assert_that!(low_path_stats.num_accesses).is_equal_to(0);
     }
 
@@ -211,7 +211,7 @@ mod tests {
         low_path_stats.update_num_accesses(1);
 
         assert_that!(low_path_stats.num_accesses).is_equal_to(1);
-        assert_that!(low_path_stats.frecency).is_close_to(0.0,0.01);
+        assert_that!(low_path_stats.frecency).is_close_to(0.0, 0.01);
     }
 
     #[test]
@@ -246,7 +246,6 @@ mod tests {
             .is_equal_to("0.000\t/test/path\n".to_string());
         assert_that!(low_path_stats.to_string(&SortMethod::Frequent, true))
             .is_equal_to("0\t/test/path\n".to_string());
-
     }
 
     #[test]
@@ -277,7 +276,7 @@ mod tests {
 
         low_path_stats.last_accessed = -2.0;
 
-        assert_that!(low_path_stats.secs_since_access()).is_close_to(2.0,0.1);
+        assert_that!(low_path_stats.secs_since_access()).is_close_to(2.0, 0.1);
     }
 
     #[test]

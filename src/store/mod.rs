@@ -4,7 +4,7 @@ use super::stats::PathStats;
 use super::current_time_secs;
 use super::SortMethod;
 use std::default::Default;
-use std::io::{self, BufWriter,BufReader, Write};
+use std::io::{self, BufWriter, BufReader, Write};
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 use std::process;
@@ -51,7 +51,6 @@ impl Default for UsageStore {
 }
 
 impl UsageStore {
-
     /// Remove all paths from the store that do not exist
     pub fn purge(&mut self) {
         self.paths.retain(|dir| Path::new(&dir.path).exists());
@@ -66,23 +65,23 @@ impl UsageStore {
 
     /// Reset the reference time to now, and reweight all the statistics to reflect that
     pub fn reset_time(&mut self) {
-      let current_time = current_time_secs();
-      
-      self.reference_time = current_time;
+        let current_time = current_time_secs();
 
-      for path in self.paths.iter_mut() {
-        path.reset_ref_time(current_time);
-      }
+        self.reference_time = current_time;
+
+        for path in self.paths.iter_mut() {
+            path.reset_ref_time(current_time);
+        }
     }
 
     /// Change the half life and reweight such that frecency does not change
     pub fn set_half_life(&mut self, half_life: f32) {
-      self.reset_time();
-      self.half_life = half_life;
-      
-      for path in self.paths.iter_mut() {
-        path.set_half_life(half_life);
-      }
+        self.reset_time();
+        self.half_life = half_life;
+
+        for path in self.paths.iter_mut() {
+            path.set_half_life(half_life);
+        }
     }
 
     /// Log a visit to a path
@@ -105,7 +104,6 @@ impl UsageStore {
 
     /// Print out all the paths, sorted by `method`, with an optional maximum of `limit`
     pub fn print_sorted(&self, method: &SortMethod, show_stats: bool, limit: Option<usize>) {
-
         let stdout = io::stdout();
         let handle = stdout.lock();
         let mut writer = BufWriter::new(handle);
@@ -114,11 +112,11 @@ impl UsageStore {
         let take_num = limit.unwrap_or_else(|| sorted.len());
 
         for dir in sorted.iter().take(take_num) {
-          writer.write_all(dir.to_string(method, show_stats).as_bytes())
-            .unwrap_or_else(|e| {
-              error!("unable to write to stdout: {}", e);
-              process::exit(1);
-            });
+            writer.write_all(dir.to_string(method, show_stats).as_bytes())
+                .unwrap_or_else(|e| {
+                    error!("unable to write to stdout: {}", e);
+                    process::exit(1);
+                });
         }
     }
 
@@ -126,7 +124,7 @@ impl UsageStore {
     fn sorted(&self, sort_method: &SortMethod) -> Vec<PathStats> {
         let mut new_vec = self.paths.clone();
         new_vec.sort_by(|dir1, dir2| {
-          dir1.cmp_score(dir2, sort_method).reverse()
+            dir1.cmp_score(dir2, sort_method).reverse()
         });
 
         new_vec
@@ -150,187 +148,187 @@ impl UsageStore {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
-  use spectral::prelude::*;
+    use super::*;
+    use spectral::prelude::*;
 
-  fn create_usage() -> UsageStore {
-    UsageStore {
-      reference_time: current_time_secs(),
-      half_life: 1.0,
-      paths: Vec::new()
+    fn create_usage() -> UsageStore {
+        UsageStore {
+            reference_time: current_time_secs(),
+            half_life: 1.0,
+            paths: Vec::new(),
+        }
     }
-  }
 
-  #[test]
-  fn add_new() {
-    let mut usage = create_usage();
+    #[test]
+    fn add_new() {
+        let mut usage = create_usage();
 
-    usage.add("test");
+        usage.add("test");
 
-    assert_that!(usage.paths.len()).is_equal_to(1);
-  }
+        assert_that!(usage.paths.len()).is_equal_to(1);
+    }
 
-  #[test]
-  fn add_existing() {
-    let mut usage = create_usage();
+    #[test]
+    fn add_existing() {
+        let mut usage = create_usage();
 
-    usage.add("test");
-    usage.add("test");
+        usage.add("test");
+        usage.add("test");
 
-    assert_that!(usage.paths.len()).is_equal_to(1);
-  }
+        assert_that!(usage.paths.len()).is_equal_to(1);
+    }
 
-  #[test]
-  fn adjust_existing() {
-    let mut usage = create_usage();
+    #[test]
+    fn adjust_existing() {
+        let mut usage = create_usage();
 
-    usage.add("test");
-    usage.adjust("test", 3.0);
+        usage.add("test");
+        usage.adjust("test", 3.0);
 
-    assert_that!(usage.paths.len()).is_equal_to(1);
-  }
+        assert_that!(usage.paths.len()).is_equal_to(1);
+    }
 
-  #[test]
-  fn adjust_new() {
-    let mut usage = create_usage();
-     
-    usage.adjust("test", 3.0);
+    #[test]
+    fn adjust_new() {
+        let mut usage = create_usage();
 
-    assert_that!(usage.paths.len()).is_equal_to(1);
-  }
+        usage.adjust("test", 3.0);
+
+        assert_that!(usage.paths.len()).is_equal_to(1);
+    }
 
 
-  #[test]
-  fn purge_exists() {
-    let mut usage = create_usage();  
-    let file = tempfile::NamedTempFile::new().unwrap().into_temp_path();
-    let path = file
-      .as_os_str()
-      .to_str()
-      .unwrap();
-    usage.add(path);
-    
-    usage.purge();
-    assert_that!(usage.paths.len()).is_equal_to(1);
-  }  
+    #[test]
+    fn purge_exists() {
+        let mut usage = create_usage();
+        let file = tempfile::NamedTempFile::new().unwrap().into_temp_path();
+        let path = file
+            .as_os_str()
+            .to_str()
+            .unwrap();
+        usage.add(path);
 
-  #[test]
-  fn purge_not_exists() {
-    let mut usage = create_usage();  
-    usage.add("/nonexistant_dir");
-    
-    usage.purge();
-    assert_that!(usage.paths.len()).is_equal_to(0);
-  }  
+        usage.purge();
+        assert_that!(usage.paths.len()).is_equal_to(1);
+    }
 
-  #[test]
-  fn truncate_greater() {
-    let mut usage = create_usage();  
-    usage.add("dir1");
-    usage.add("dir2");
+    #[test]
+    fn purge_not_exists() {
+        let mut usage = create_usage();
+        usage.add("/nonexistant_dir");
 
-    usage.truncate(1, &SortMethod::Recent);
+        usage.purge();
+        assert_that!(usage.paths.len()).is_equal_to(0);
+    }
 
-    assert_that!(usage.paths.len()).is_equal_to(1);
-  }
+    #[test]
+    fn truncate_greater() {
+        let mut usage = create_usage();
+        usage.add("dir1");
+        usage.add("dir2");
 
-  #[test]
-  fn truncate_less() {
-    let mut usage = create_usage();  
-    usage.add("dir1");
-    usage.add("dir2");
+        usage.truncate(1, &SortMethod::Recent);
 
-    usage.truncate(3, &SortMethod::Recent);
+        assert_that!(usage.paths.len()).is_equal_to(1);
+    }
 
-    assert_that!(usage.paths.len()).is_equal_to(2);
-  }
+    #[test]
+    fn truncate_less() {
+        let mut usage = create_usage();
+        usage.add("dir1");
+        usage.add("dir2");
 
-  #[test]
-  fn sorted_frecent() {
-    let mut usage = create_usage();
-    usage.add("dir1");
-    usage.add("dir2");
-    usage.get("dir2").update_frecency(1000.0);
+        usage.truncate(3, &SortMethod::Recent);
 
-    let sorted = usage.sorted(&SortMethod::Frecent);
+        assert_that!(usage.paths.len()).is_equal_to(2);
+    }
 
-    assert_that!(sorted.len()).is_equal_to(2);
-    assert_that!(sorted[0].path).is_equal_to("dir2".to_string());
-  }
+    #[test]
+    fn sorted_frecent() {
+        let mut usage = create_usage();
+        usage.add("dir1");
+        usage.add("dir2");
+        usage.get("dir2").update_frecency(1000.0);
 
-  #[test]
-  fn sorted_recent() {
-    let mut usage = create_usage();
-    usage.add("dir1");
-    usage.add("dir2");
-    usage.get("dir2").update_last_access(current_time_secs() + 100.0);
+        let sorted = usage.sorted(&SortMethod::Frecent);
 
-    let sorted = usage.sorted(&SortMethod::Recent);
+        assert_that!(sorted.len()).is_equal_to(2);
+        assert_that!(sorted[0].path).is_equal_to("dir2".to_string());
+    }
 
-    assert_that!(sorted.len()).is_equal_to(2);
-    assert_that!(sorted[0].path).is_equal_to("dir2".to_string());
-  }
+    #[test]
+    fn sorted_recent() {
+        let mut usage = create_usage();
+        usage.add("dir1");
+        usage.add("dir2");
+        usage.get("dir2").update_last_access(current_time_secs() + 100.0);
 
-  #[test]
-  fn sorted_frequent() {
-    let mut usage = create_usage();
-    usage.add("dir1");
-    usage.add("dir2");
-    usage.get("dir2").update_num_accesses(100);
+        let sorted = usage.sorted(&SortMethod::Recent);
 
-    let sorted = usage.sorted(&SortMethod::Frequent);
+        assert_that!(sorted.len()).is_equal_to(2);
+        assert_that!(sorted[0].path).is_equal_to("dir2".to_string());
+    }
 
-    assert_that!(sorted.len()).is_equal_to(2);
-    assert_that!(sorted[0].path).is_equal_to("dir2".to_string());
-  }
+    #[test]
+    fn sorted_frequent() {
+        let mut usage = create_usage();
+        usage.add("dir1");
+        usage.add("dir2");
+        usage.get("dir2").update_num_accesses(100);
 
-  #[test]
-  fn get_exists() {
-    let mut usage = create_usage();
-    usage.add("dir1");
+        let sorted = usage.sorted(&SortMethod::Frequent);
 
-    let stats = usage.get("dir1");
+        assert_that!(sorted.len()).is_equal_to(2);
+        assert_that!(sorted[0].path).is_equal_to("dir2".to_string());
+    }
 
-    assert_that!(usage.paths.len()).is_equal_to(1);
-  }
+    #[test]
+    fn get_exists() {
+        let mut usage = create_usage();
+        usage.add("dir1");
 
-  #[test]
-  fn get_not_exists() {
-    let mut usage = create_usage();
-    usage.add("dir1");
+        let stats = usage.get("dir1");
 
-    usage.get("dir2");
+        assert_that!(usage.paths.len()).is_equal_to(1);
+    }
 
-    assert_that!(usage.paths.len()).is_equal_to(2);
-  }
+    #[test]
+    fn get_not_exists() {
+        let mut usage = create_usage();
+        usage.add("dir1");
 
-  #[test]
-  fn reset_time() {
-    let mut usage = create_usage();
-    let current_time = current_time_secs();
-    usage.reference_time = current_time - 10.0;
-    usage.add("test");
-    let original_frecency = usage.get("test").get_frecency();
+        usage.get("dir2");
 
-    usage.reset_time(); 
+        assert_that!(usage.paths.len()).is_equal_to(2);
+    }
 
-    assert_that!(usage.reference_time).is_close_to(current_time, 0.1);
-    assert_that!(usage.get("test").get_frecency()).is_close_to(original_frecency, 0.1)
-  }
+    #[test]
+    fn reset_time() {
+        let mut usage = create_usage();
+        let current_time = current_time_secs();
+        usage.reference_time = current_time - 10.0;
+        usage.add("test");
+        let original_frecency = usage.get("test").get_frecency();
 
-  #[test]
-  fn set_halflife() {
-    let mut usage = create_usage();
-    let current_time = current_time_secs();
-    usage.reference_time = current_time - 10.0;
-    usage.add("dir1");
-    let original_frecency = usage.get("dir1").get_frecency();
+        usage.reset_time();
 
-    usage.set_half_life(10.0);
+        assert_that!(usage.reference_time).is_close_to(current_time, 0.1);
+        assert_that!(usage.get("test").get_frecency()).is_close_to(original_frecency, 0.1)
+    }
 
-    let new_frecency = usage.get("dir1").get_frecency();
+    #[test]
+    fn set_halflife() {
+        let mut usage = create_usage();
+        let current_time = current_time_secs();
+        usage.reference_time = current_time - 10.0;
+        usage.add("dir1");
+        let original_frecency = usage.get("dir1").get_frecency();
 
-    assert_that!(usage.half_life).is_close_to(10.0, 0.01);
-    assert_that!(new_frecency).is_close_to(original_frecency, 0.01);
-  }
+        usage.set_half_life(10.0);
+
+        let new_frecency = usage.get("dir1").get_frecency();
+
+        assert_that!(usage.half_life).is_close_to(10.0, 0.01);
+        assert_that!(new_frecency).is_close_to(original_frecency, 0.01);
+    }
 }
