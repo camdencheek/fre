@@ -58,5 +58,7 @@ More shells to come
 
 ## TODO 
 
+- [ ] Investigate using `topd` as a source for tab completions à la `z`
 - [ ] Investigate supporting multiple half-lives for more flexible decay rates
 - [ ] Investigate accepting paths from stdin to sort
+- [ ] Implement auto-resetting the reference time whenever a large number of half lives has passed

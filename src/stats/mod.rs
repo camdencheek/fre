@@ -153,7 +153,7 @@ mod tests {
 
     #[test]
     fn new_path_stats() {
-        let test_path = "/test/path".to_string();
+        let test_path = "/test/path";
         let ref_time = current_time_secs();
 
         let new_path_stats = PathStats::new(test_path, ref_time, 10.0);

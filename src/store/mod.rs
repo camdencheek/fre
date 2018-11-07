@@ -287,7 +287,7 @@ mod tests {
         let mut usage = create_usage();
         usage.add("dir1");
 
-        let stats = usage.get("dir1");
+        let _stats = usage.get("dir1");
 
         assert_that!(usage.paths.len()).is_equal_to(1);
     }
@@ -323,7 +323,6 @@ mod tests {
         usage.reference_time = current_time - 10.0;
         usage.add("dir1");
         let original_frecency = usage.get("dir1").get_frecency();
-
         usage.set_half_life(10.0);
 
         let new_frecency = usage.get("dir1").get_frecency();

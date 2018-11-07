@@ -4,8 +4,8 @@ use std::path::PathBuf;
 use std::process;
 use log::error;
 
-/// Returns Ok(_) if `s` can be parsed as an int.
-/// Used for argument validation
+/// Returns Ok(_) if input string  can be parsed as an int.
+/// Used for argument validation.
 fn is_int(s: String) -> Result<(), String> {
     match s.parse::<i64>() {
         Ok(_) => Ok(()),
@@ -13,7 +13,7 @@ fn is_int(s: String) -> Result<(), String> {
     }
 }
 
-/// Returns an instance of the application with arguments
+/// Returns an instance of the application with arguments.
 pub fn get_app() -> App<'static, 'static> {
     App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
@@ -99,7 +99,7 @@ pub fn get_app() -> App<'static, 'static> {
             .help("The path to update"))
 }
 
-/// Given the argument matches, return the path of the store file
+/// Given the argument matches, return the path of the store file.
 pub fn get_store_path(matches: &ArgMatches) -> PathBuf {
     match (matches.value_of("store"), matches.value_of("store_name")) {
         (Some(dir), None) => PathBuf::from(dir),
@@ -109,7 +109,7 @@ pub fn get_store_path(matches: &ArgMatches) -> PathBuf {
 }
 
 /// Return a path to a store file in the default location.
-/// Uses filename as the name of the file if it is not `None`
+/// Uses filename as the name of the file if it is not `None`.
 pub fn default_store(filename: Option<&str>) -> PathBuf {
     let store_dir = match ProjectDirs::from("", "", env!("CARGO_PKG_NAME")) {
         Some(dir) => dir.data_dir().to_path_buf(),
