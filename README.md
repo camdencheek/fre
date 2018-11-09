@@ -62,6 +62,7 @@ More shells to come
 - [ ] Investigate supporting multiple half-lives for more flexible decay rates
 - [ ] Investigate accepting paths from stdin to sort
 - [ ] Implement auto-resetting the reference time whenever a large number of half lives has passed
+- [ ] Fix negative frecency issues
 
 ## OTHER
 
