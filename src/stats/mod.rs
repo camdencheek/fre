@@ -59,22 +59,28 @@ impl PathStats {
 
     /// Change the half life of the path, maintaining the same frecency
     pub fn set_half_life(&mut self, half_life: f32) {
-        self.frecency *= 2.0f32.powf(
-            secs_elapsed(self.reference_time) as f32 * (1.0 / self.half_life - 1.0 / half_life));
-
-        self.half_life = half_life
+        let old_frecency = self.get_frecency();
+        self.half_life = half_life;
+        self.set_frecency(old_frecency);
     }
 
     /// Calculate the frecency of the path
     pub fn get_frecency(&self) -> f32 {
         self.frecency / 2.0f32.powf(
-            self.secs_since_access() as f32 / self.half_life)
+            secs_elapsed(self.reference_time) as f32 / self.half_life
+        )
     }
 
-    /// Update the frecency of the path by the given weight
+    pub fn set_frecency(&mut self, new: f32) {
+        self.frecency = new * 2.0f32.powf(
+            secs_elapsed(self.reference_time) as f32 / self.half_life
+        );
+    }
+
+    /// update the frecency of the path by the given weight
     pub fn update_frecency(&mut self, weight: f32) {
-        let elapsed_since_ref = secs_elapsed(self.reference_time);
-        self.frecency += weight * 2.0f32.powf(elapsed_since_ref as f32 / self.half_life);
+        let original_frecency = self.get_frecency();
+        self.set_frecency(original_frecency + weight);
     }
 
     /// Update the number of accesses of the path by the given weight
@@ -88,10 +94,12 @@ impl PathStats {
     }
 
     /// Reset the reference time and recalculate the last_accessed time
-    pub fn reset_ref_time(&mut self, time: f64) {
-        let delta = self.reference_time - time;
-        self.reference_time = time;
+    pub fn reset_ref_time(&mut self, new_time: f64) {
+        let original_frecency = self.get_frecency();
+        let delta = self.reference_time - new_time;
+        self.reference_time = new_time;
         self.last_accessed += delta as f32;
+        self.set_frecency(original_frecency);
     }
 
     /// Return the number of seconds since the path was last accessed
@@ -99,7 +107,7 @@ impl PathStats {
         secs_elapsed(self.reference_time) - self.last_accessed
     }
 
-    /// Convert the path to a string, showing the score for a given
+
     /// sort method if `show_stats` is `true`
     pub fn to_string(&self, method: &SortMethod, show_stats: bool) -> String {
         if show_stats {
@@ -204,6 +212,7 @@ mod tests {
         assert_that!(low_path_stats.num_accesses).is_equal_to(0);
     }
 
+
     #[test]
     fn update_num_accesses() {
         let mut low_path_stats = create_path();
@@ -252,8 +261,8 @@ mod tests {
     fn get_frecency_one_half_life() {
         let mut low_path_stats = create_path();
 
+        low_path_stats.reset_ref_time(current_time_secs() - 1.0);
         low_path_stats.frecency = 1.0;
-        low_path_stats.last_accessed = -1.0;
 
         assert_that!(low_path_stats.get_frecency())
             .is_close_to(0.5, 0.1);
@@ -263,8 +272,8 @@ mod tests {
     fn get_frecency_two_half_lives() {
         let mut low_path_stats = create_path();
 
+        low_path_stats.reset_ref_time(current_time_secs() - 2.0);
         low_path_stats.frecency = 1.0;
-        low_path_stats.last_accessed = -2.0;
 
         assert_that!(low_path_stats.get_frecency())
             .is_close_to(0.25, 0.1);
