@@ -42,7 +42,7 @@ fn add_existing_increases() {
     .assert();
 
 
-  let increased = common::path_score_approx_equal(dir, 3.0); 
+  let increased = common::path_score_approx_equal(dir, 3.0);
 
   Command::main_binary()
     .unwrap()
@@ -81,7 +81,6 @@ fn add_create() {
     .assert()
     .stdout(exists);
 
-  // TODO figure out how to assert increase
 }
 
 #[test]
@@ -189,7 +188,7 @@ fn increase_score() {
     .assert()
     .success();
 
-  let frecency_increased_two = common::path_score_increased(absolute_dir.clone(), 3.1);
+  let frecency_increased_two = common::path_score_approx_equal(absolute_dir.clone(), 5.0);
 
   Command::main_binary()
     .unwrap()
@@ -220,7 +219,7 @@ fn decrease_score() {
     .assert()
     .success();
 
-  let frecency_decreased_one = common::path_score_decreased(absolute_dir.clone(), 2.9);
+  let frecency_decreased_one = common::path_score_approx_equal(absolute_dir.clone(), 2.0);
 
   Command::main_binary()
     .unwrap()
