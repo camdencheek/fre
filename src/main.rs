@@ -36,6 +36,11 @@ fn main() {
         usage.set_half_life(half_life);
     }
 
+    // TODO write a test for this
+    if usage.half_lives_passed() > 5.0 {
+        usage.reset_time()
+    }
+
     // Determine the sorting method. Defaults to frecent if unspecified
     let sort_method = match matches.value_of("sort_method") {
         Some("recent") => SortMethod::Recent,
@@ -47,7 +52,7 @@ fn main() {
 
     // Print the directories if --sorted or --stat are specified
     if matches.is_present("sorted") || matches.is_present("stat") {
-        // If a limit is specified, parse it
+        // If a limit is specified, parse it and use it
         if let Some(s) = matches.value_of("limit") {
             match s.parse::<usize>() {
                 Ok(l) => usage.print_sorted(&sort_method, matches.is_present("stat"), Some(l)),

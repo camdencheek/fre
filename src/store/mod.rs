@@ -63,16 +63,6 @@ impl UsageStore {
         self.paths = sorted_vec;
     }
 
-    /// Reset the reference time to now, and reweight all the statistics to reflect that
-    pub fn reset_time(&mut self) {
-        let current_time = current_time_secs();
-
-        self.reference_time = current_time;
-
-        for path in self.paths.iter_mut() {
-            path.reset_ref_time(current_time);
-        }
-    }
 
     /// Change the half life and reweight such that frecency does not change
     pub fn set_half_life(&mut self, half_life: f32) {
@@ -81,6 +71,22 @@ impl UsageStore {
 
         for path in self.paths.iter_mut() {
             path.set_half_life(half_life);
+        }
+    }
+
+    /// Return the number of half lives passed since the reference time
+    pub fn half_lives_passed(&self) -> f64 {
+        return (current_time_secs() - self.reference_time ) / self.half_life as f64
+    }
+
+    /// Reset the reference time to now, and reweight all the statistics to reflect that
+    pub fn reset_time(&mut self) {
+        let current_time = current_time_secs();
+
+        self.reference_time = current_time;
+
+        for path in self.paths.iter_mut() {
+            path.reset_ref_time(current_time);
         }
     }
 
@@ -116,7 +122,7 @@ impl UsageStore {
                 .unwrap_or_else(|e| {
                     error!("unable to write to stdout: {}", e);
                     process::exit(1);
-                });
+               });
         }
     }
 
@@ -254,6 +260,19 @@ mod tests {
 
         assert_that!(sorted.len()).is_equal_to(2);
         assert_that!(sorted[0].path).is_equal_to("dir2".to_string());
+    }
+
+    #[test]
+    fn sorted_frecent2() {
+        let mut usage = create_usage();
+        usage.add("dir1");
+        usage.add("dir2");
+        usage.get("dir1").update_frecency(1000.0);
+
+        let sorted = usage.sorted(&SortMethod::Frecent);
+
+        assert_that!(sorted.len()).is_equal_to(2);
+        assert_that!(sorted[0].path).is_equal_to("dir1".to_string());
     }
 
     #[test]
