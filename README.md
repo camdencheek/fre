@@ -1,10 +1,9 @@
-# fe
+# Frecency with Exponential decay (`fe`)
 
 `fe` is a CLI tool for tracking your most-used directories and files. 
 Though inspired by tools like `autojump` or the `z` plugin for `zsh`, it takes a slightly 
 different approach to tracking and providing usage data. 
-The primary difference is `fe` does not actually support jumping. 
-Instead, it just keeps track of and provides sorting methods for directories, 
+The primary difference is `fe` does not support jumping. Instead, it just keeps track of and provides sorting methods for directories, 
 which can then be filtered by another application like `fzf`, 
 which does a much better job of filtering than something I can write.  
 
@@ -59,10 +58,7 @@ More shells to come
 ## TODO 
 
 - [ ] Investigate using `fe` as a source for tab completions à la `z`
-- [ ] Investigate supporting multiple half-lives for more flexible decay rates
 - [ ] Investigate accepting paths from stdin to sort
-- [ ] Implement auto-resetting the reference time whenever a large number of half lives has passed
-- [ ] Fix negative frecency issues
 
 ## OTHER
 
