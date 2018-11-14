@@ -5,7 +5,7 @@ Though inspired by tools like `autojump` or the `z` plugin for `zsh`, it takes a
 different approach to tracking and providing usage data. 
 The primary difference is `fe` does not support jumping. Instead, it just keeps track of and provides sorting methods for directories, 
 which can then be filtered by another application like `fzf`, 
-which does a much better job of filtering than something I can write.  
+which does a much better job of filtering than something I can write.
 
 
 ## Usage
@@ -54,12 +54,27 @@ chpwd_functions+=fe_chpwd
 
 More shells to come
 
+### Vim integration
+
+Want to track what files are most frecently opened in vim? Me too. I'm working on getting that working.
 
 ## TODO 
 
 - [ ] Investigate using `fe` as a source for tab completions à la `z`
 - [ ] Investigate accepting paths from stdin to sort
 
-## OTHER
+## About the algorithm
 
-Interesting reading: https://ieeexplore.ieee.org/document/970573
+The algorithm used combines the concepts of frequency and recency into a single, sortable statistic called "frecency".
+To my knowledge, this term was first coined by Mozilla to describe their URL suggestions algorithm. 
+In fact, Mozilla already came up with nearly this exact algorithm and 
+[considered using it to replace Firefox's frecency algorithm](https://wiki.mozilla.org/User:Jesse/NewFrecency?title=User:Jesse/NewFrecency).
+The algorithm is also very similar to the cache replacement problem, and a more formal treatment of the
+math behind it can be found in this [IEEE article](https://ieeexplore.ieee.org/document/970573) (sorry for the paywall).
+
+This algorithm calculates the frecency score of each directory as the sum of the weights of each visit to that directory.
+The weight of a visit decays exponentially with time, causing more recently visited directories to be ranked higher. 
+Additionally, by leveraging some special properties of exponential decay, we can collapse this number down into a 
+single stored number for each directory so we don't have to store every time each directory was visited. I'll hopefully
+get around to writing a blog post about this in the near future.  
+
