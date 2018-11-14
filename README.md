@@ -137,9 +137,3 @@ In fact, Mozilla already came up with nearly this exact algorithm and
 The algorithm is also very similar to the cache replacement problem, and a more formal treatment of the
 math behind it can be found in this [IEEE article](https://ieeexplore.ieee.org/document/970573) (sorry for the paywall).
 
-This algorithm calculates the frecency score of each directory as the sum of the weights of each visit to that directory.
-The weight of a visit decays exponentially with time, causing more recently visited directories to be ranked higher. 
-Additionally, by leveraging some special properties of exponential decay, we can collapse this number down into a 
-single stored number for each directory so we don't have to store every time each directory was visited. I'll hopefully
-get around to writing a blog post about this in the near future.  
-
