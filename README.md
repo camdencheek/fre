@@ -110,11 +110,13 @@ function frecent(rank, time) {
 
 This works fine until you re-visit an old directory. Then, suddenly, `dx` is small again and all the old visits are re-weighted to `rank*4`, causing it to jump up in the sorted output. This is not really ideal. I want to be able to re-visit an old directory once without messing up my directory ranking. 
 
-`fe` uses a frecency algorithm where the weight of a directory visit decays over time. Given a list of visit times (bold x), the frecency of the directory would look something like this:
+`fe` uses a frecency algorithm where the weight of a directory visit decays over time. Given a list of visit times (bold x), the frecency of the directory would look something like this (using lambda as the half life and "now" as the current time at calculation):
 
 <a href="https://user-images.githubusercontent.com/12631702/48453749-a1bbbc00-e782-11e8-9c4e-4c367db02794.png"><img src="https://user-images.githubusercontent.com/12631702/48453749-a1bbbc00-e782-11e8-9c4e-4c367db02794.png" align="center" height="100" width="450" ></a>
 
+With a little bit of mathemagics, we don't actually have to store the vector of access times. We can compress everything down into one number as long as we're okay not being able to dynamically change the half life. 
 
+This algorithm provides a much more intuitive implementation of frecency that tends to come up with results that more closely match those we would naturally expect.
 
 ## Support
 
