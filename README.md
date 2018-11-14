@@ -78,6 +78,46 @@ More shells to come
 Want to track what files are most frecently opened in vim? Me too. I'm working on making that functional.
 
 
+## Comparison to existing solutions
+
+The three projects I'm familiar with that are closest in function to this are `autojump`, the `z` shell plugin, and the `d` portion (and maybe the `f` in the future) of `fasd`. 
+
+The primary difference from the rest of these is its reliance on a tool like `fzf` to provide any solid directory jumping functionality. This was an intentional choice, sticking to the Unix philosophy of "do one thing, and do it well". 
+
+The other major change from these pieces of software is the algorithm used to rank directories.  `autojump` uses the following formula:
+
+```python
+
+def add_path(data, path, weight=10):
+    # ...
+    data[path] = sqrt((data.get(path, 0) ** 2) + (weight ** 2))
+    # ...
+```
+
+Looking at it closely, it seems to just be calculating the hypotenuse of a triangle where one side is the length of the previous weight and the other is the length of the weight being added. This does not take into account time passed since access at all, which is not ideal since I would rather not have directories from years ago ranked highly.
+
+`fasd` and `z` both use the same frecency function that looks something like this:
+
+```zsh
+function frecent(rank, time) {
+    dx = t-time
+    if( dx < 3600 ) return rank*4
+    if( dx < 86400 ) return rank*2
+    if( dx < 604800 ) return rank/2
+    return rank/4
+}
+```
+
+This works fine until you re-visit an old directory. Then, suddenly, `dx` is small again and all the old visits are re-weighted to `rank*4`, causing it to jump up in the sorted output. This is not really ideal. I want to be able to re-visit an old directory once without messing up my directory ranking. 
+
+`fe` uses a frecency algorithm where the weight of a directory visit decays over time. Given a list of visit times (bold x), the frecency of the directory would look something like this:
+
+![](https://user-images.githubusercontent.com/12631702/48453749-a1bbbc00-e782-11e8-9c4e-4c367db02794.png)
+
+
+
+
+
 ## Support
 
 I use this regularly on MacOS and Linux. I wrote it to be usable on Windows as well, 
