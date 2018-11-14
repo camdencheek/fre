@@ -35,6 +35,9 @@ fe --stat --sort_method recent
 
 # Print directories and the number of times they've been visited
 fe --stat --sort_method frequent
+
+# Remove all directories that no longer exist from the database
+fe --purge 
 ```
 
 For integration with `fzf` CTRL-T, define the following environment variables 
