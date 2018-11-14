@@ -18,7 +18,23 @@ control-T bindings, modified to use `fe` as input. Some examples are below.
 
 Basic usage
 ```sh
+# Print directories, sorted by frecency, then pipe to fzf
 fe --sorted | fzf
+
+# Print directories and their associated frecency, sorted by frecency
+fe --stat
+
+# Log a visit to a directory
+fe --add ~/new_dir
+
+# Decrease weight of a directory by 10 visits
+fe --decrease 10 ~/too_high_dir
+
+# Print directories and the time since they were last visited in hours
+fe --stat --sort_method recent
+
+# Print directories and the number of times they've been visited
+fe --stat --sort_method frequent
 ```
 
 For integration with `fzf` CTRL-T, define the following environment variables 
