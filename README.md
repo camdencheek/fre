@@ -75,7 +75,7 @@ More shells to come
 
 ### Vim integration
 
-Want to track what files are most frecently opened in vim? Me too. I'm working on getting that working.
+Want to track what files are most frecently opened in vim? Me too. I'm working on making that functional.
 
 ## TODO 
 
