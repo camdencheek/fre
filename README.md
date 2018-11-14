@@ -112,7 +112,7 @@ This works fine until you re-visit an old directory. Then, suddenly, `dx` is sma
 
 `fe` uses a frecency algorithm where the weight of a directory visit decays over time. Given a list of visit times (bold x), the frecency of the directory would look something like this:
 
-![](https://user-images.githubusercontent.com/12631702/48453749-a1bbbc00-e782-11e8-9c4e-4c367db02794.png)
+<a href="url"><img src="https://user-images.githubusercontent.com/12631702/48453749-a1bbbc00-e782-11e8-9c4e-4c367db02794.png" align="center" height="48" width="200" ></a>
 
 
 
