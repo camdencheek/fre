@@ -77,6 +77,12 @@ More shells to come
 
 Want to track what files are most frecently opened in vim? Me too. I'm working on making that functional.
 
+
+## Support
+
+I use this regularly on MacOS and Linux. I wrote it to be usable on Windows as well, 
+but I don't run any tests for it. Caveat emptor.
+
 ## TODO 
 
 - [ ] Investigate using `fe` as a source for tab completions à la `z`
