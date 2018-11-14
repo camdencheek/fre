@@ -61,7 +61,7 @@ export FZF_CTRL_T_OPTS='--tiebreak=index'
 ### Shell integration
 
 #### zsh
-(credit to `fzf`)
+(credit to `autojump`)
 
 ```zsh
 fe_chpwd() {
