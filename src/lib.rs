@@ -1,7 +1,4 @@
 #![feature(duration_as_u128)]
-#![feature(test)]
-
-extern crate test;
 
 #[macro_use]
 extern crate serde_derive;
