@@ -1,5 +1,3 @@
-#![feature(duration_as_u128)]
-
 #[macro_use]
 extern crate serde_derive;
 
@@ -21,7 +19,7 @@ pub enum SortMethod {
 /// Return the current time in seconds as a float
 pub fn current_time_secs() -> f64 {
     match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-        Ok(n) => n.as_millis() as f64 / 1000.0,
+        Ok(n) => (n.as_secs() as u128 * 1000 + n.subsec_millis() as u128) as f64 / 1000.0,
         Err(e) => {
             error!("invalid system time: {}", e);
             process::exit(1);
