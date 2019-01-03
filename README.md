@@ -1,60 +1,65 @@
-# Frecency with Exponential decay (`fe`)
+# FREcency Tracking (`fret`)
 
-`fe` is a CLI tool for tracking your most-used directories and files. 
+`fret` is a CLI tool for tracking your most-used directories and files. 
 Though inspired by tools like `autojump` or the `z` plugin for `zsh`, it takes a slightly 
 different approach to tracking and providing usage data. 
-The primary difference is `fe` does not support jumping. Instead, it just keeps track of and provides sorting methods for directories, 
+The primary difference is `fret` does not support jumping. Instead, 
+it just keeps track of and provides sorting methods for directories, 
 which can then be filtered by another application like `fzf`, 
 which does a much better job of filtering than something I can write.
+Additionally, it uses an algorithm in which the weights of each directory
+decay exponentially, so more recently used directories are ranked more highly
+in a smooth manner.
+
 
 
 ## Usage
 
-`fe` is primarily designed to interface with `fzf`. For general usage, 
+`fret` is primarily designed to interface with `fzf`. For general usage, 
 a user will create a shell hook that adds a directory every time the current 
 directory is changed. This will start to build your profile of most-used directories. 
-Then, `fe` can be used as a source for `fzf`. I personally use the `fzf`-provided 
-control-T bindings, modified to use `fe` as input. Some examples are below.
+Then, `fret` can be used as a source for `fzf`. I personally use the `fzf`-provided 
+control-T bindings, modified to use `fret` as input. Some examples are below.
 
 Basic usage
 ```sh
 # Print directories, sorted by frecency, then pipe to fzf
-fe --sorted | fzf
+fret --sorted | fzf
 
 # Print directories and their associated frecency, sorted by frecency
-fe --stat
+fret --stat
 
 # Log a visit to a directory
-fe --add ~/new_dir
+fret --add ~/new_dir
 
 # Decrease weight of a directory by 10 visits
-fe --decrease 10 ~/too_high_dir
+fret --decrease 10 ~/too_high_dir
 
 # Print directories and the time since they were last visited in hours
-fe --stat --sort_method recent
+fret --stat --sort_method recent
 
 # Print directories and the number of times they've been visited
-fe --stat --sort_method frequent
+fret --stat --sort_method frequent
 
 # Remove all directories that no longer exist from the database
-fe --purge 
+fret --purge 
 ```
 
 For integration with `fzf` CTRL-T, define the following environment variables 
 ```zsh
-export FZF_CTRL_T_COMMAND='command fe --sorted'
+export FZF_CTRL_T_COMMAND='command fret --sorted'
 export FZF_CTRL_T_OPTS='--tiebreak=index'
 ```
 
-To preferentially use results from fe, but fall back to other results, we can use 
+To preferentially use results from `fret`, but fall back to other results, we can use 
 `cat` to combine results before sending them to `fzf`. My favorite alternate source 
 is `fd` ([link](https://github.com/sharkdp/fd)), but the more common `find` can also be 
-used. The following options first use `fe` results, then use all the subdirectories 
+used. The following options first use `fret` results, then use all the subdirectories 
 of the current directory, then use every subdirectory in your home directory. 
 This is what I personally use.
 
 ```zsh
-export FZF_CTRL_T_COMMAND='command cat <(fe --sorted) <(fd -t d) <(fd -t d . ~)'
+export FZF_CTRL_T_COMMAND='command cat <(fret --sorted) <(fd -t d) <(fd -t d . ~)'
 export FZF_CTRL_T_OPTS='--tiebreak=index'
 ```
 
@@ -64,11 +69,11 @@ export FZF_CTRL_T_OPTS='--tiebreak=index'
 (credit to `autojump`)
 
 ```zsh
-fe_chpwd() {
-  fe --add "$(pwd)"
+fret_chpwd() {
+  fret --add "$(pwd)"
 }
 typeset -gaU chpwd_functions
-chpwd_functions+=fe_chpwd
+chpwd_functions+=fret_chpwd
 ```
 
 More shells to come
@@ -110,7 +115,7 @@ function frecent(rank, time) {
 
 This works fine until you re-visit an old directory. Then, suddenly, `dx` is small again and all the old visits are re-weighted to `rank*4`, causing it to jump up in the sorted output. This is not really ideal. I want to be able to re-visit an old directory once without messing up my directory ranking. 
 
-`fe` uses a frecency algorithm where the weight of a directory visit decays over time. Given a list of visit times (bold x), the frecency of the directory would look something like this (using lambda as the half life and "now" as the current time at calculation):
+`fret` uses a frecency algorithm where the weight of a directory visit decays over time. Given a list of visit times (bold x), the frecency of the directory would look something like this (using lambda as the half life and "now" as the current time at calculation):
 
 <a href="https://user-images.githubusercontent.com/12631702/48453749-a1bbbc00-e782-11e8-9c4e-4c367db02794.png"><img src="https://user-images.githubusercontent.com/12631702/48453749-a1bbbc00-e782-11e8-9c4e-4c367db02794.png" align="center" height="100" width="450" ></a>
 
@@ -125,7 +130,7 @@ but I don't run any tests for it. Caveat emptor.
 
 ## TODO 
 
-- [ ] Investigate using `fe` as a source for tab completions à la `z`
+- [ ] Investigate using `fret` as a source for tab completions à la `z`
 - [ ] Investigate accepting paths from stdin to sort
 
 ## About the algorithm

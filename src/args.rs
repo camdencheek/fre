@@ -134,7 +134,7 @@ mod tests {
 
     #[test]
     fn get_store_path_full() {
-        let arg_vec = vec!["fe", "--store", "/test/path"];
+        let arg_vec = vec!["fret", "--store", "/test/path"];
         let matches = get_app().get_matches_from_safe(arg_vec).unwrap();
 
         let store_path = get_store_path(&matches);
@@ -144,7 +144,7 @@ mod tests {
 
     #[test]
     fn get_store_path_file() {
-        let arg_vec = vec!["fe", "--store_name", "test.path"];
+        let arg_vec = vec!["fret", "--store_name", "test.path"];
         let matches = get_app().get_matches_from_safe(arg_vec).unwrap();
 
         let store_path = get_store_path(&matches);
