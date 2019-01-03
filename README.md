@@ -12,7 +12,6 @@ decay exponentially, so more recently used directories are ranked more highly
 in a smooth manner.
 
 
-
 ## Usage
 
 `fret` is primarily designed to interface with `fzf`. For general usage, 
@@ -44,6 +43,10 @@ fret --stat --sort_method frequent
 # Remove all directories that no longer exist from the database
 fret --purge 
 ```
+
+## Installation
+
+To install, simply `cargo install fret`.
 
 For integration with `fzf` CTRL-T, define the following environment variables 
 ```zsh
