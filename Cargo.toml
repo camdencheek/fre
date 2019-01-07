@@ -2,7 +2,9 @@
 name = "fre"
 version = "0.1.0"
 authors = ["Camden Cheek <ccheek22@gmail.com>"]
+description = "A command line frecency tracking tool"
 edition = '2018'
+license = 'MIT'
 
 [dependencies]
 clap = "2.31"
