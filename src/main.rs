@@ -3,7 +3,7 @@ use env_logger;
 use path_absolutize::*;
 use std::path::PathBuf;
 use std::str::FromStr;
-use fe::*;
+use fre::*;
 
 fn main() {
 
