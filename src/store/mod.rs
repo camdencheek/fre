@@ -51,11 +51,6 @@ impl Default for UsageStore {
 }
 
 impl UsageStore {
-    /// Remove all paths from the store that do not exist
-    pub fn purge(&mut self) {
-        self.paths.retain(|dir| Path::new(&dir.path).exists());
-    }
-
     /// Remove all but the top N (sorted by `sort_method`) from the `UsageStore`
     pub fn truncate(&mut self, keep_num: usize, sort_method: &SortMethod) {
         let mut sorted_vec = self.sorted(sort_method);
@@ -204,28 +199,6 @@ mod tests {
     }
 
 
-    #[test]
-    fn purge_exists() {
-        let mut usage = create_usage();
-        let file = tempfile::NamedTempFile::new().unwrap().into_temp_path();
-        let path = file
-            .as_os_str()
-            .to_str()
-            .unwrap();
-        usage.add(path);
-
-        usage.purge();
-        assert_that!(usage.paths.len()).is_equal_to(1);
-    }
-
-    #[test]
-    fn purge_not_exists() {
-        let mut usage = create_usage();
-        usage.add("/nonexistant_dir");
-
-        usage.purge();
-        assert_that!(usage.paths.len()).is_equal_to(0);
-    }
 
     #[test]
     fn truncate_greater() {

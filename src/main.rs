@@ -103,11 +103,6 @@ fn main() {
         usage.adjust(&absolute_path, weight);
     }
 
-    // Remove non-existant directories from store
-    if matches.is_present("purge") {
-        usage.purge();
-    }
-
     // Truncate store to top N directories
     if let Some(n) = matches.value_of("truncate") {
         match n.parse::<usize>() {
