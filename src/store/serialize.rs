@@ -2,40 +2,40 @@ use super::super::stats::serialize;
 use super::*;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct UsageStoreSerializer {
+pub struct FrecencyStoreSerializer {
     reference_time: f64,
     half_life: f32,
-    paths: Vec<serialize::PathStatsSerializer>,
+    items: Vec<serialize::ItemStatsSerializer>,
 }
 
-impl From<UsageStore> for UsageStoreSerializer {
-    fn from(store: UsageStore) -> Self {
-        let paths = store.paths
+impl From<FrecencyStore> for FrecencyStoreSerializer {
+    fn from(store: FrecencyStore) -> Self {
+        let items = store.items
             .into_iter()
-            .map(serialize::PathStatsSerializer::from)
+            .map(serialize::ItemStatsSerializer::from)
             .collect();
 
-        UsageStoreSerializer {
+        FrecencyStoreSerializer {
             reference_time: store.reference_time,
             half_life: store.half_life,
-            paths,
+            items,
         }
     }
 }
 
-impl From<UsageStoreSerializer> for UsageStore {
-    fn from(store: UsageStoreSerializer) -> Self {
+impl From<FrecencyStoreSerializer> for FrecencyStore {
+    fn from(store: FrecencyStoreSerializer) -> Self {
         let ref_time = store.reference_time;
         let half_life = store.half_life;
-        let paths = store.paths
+        let items = store.items
             .into_iter()
-            .map(|s| s.into_path_stats(ref_time, half_life))
+            .map(|s| s.into_item_stats(ref_time, half_life))
             .collect();
 
-        UsageStore {
+        FrecencyStore {
             reference_time: store.reference_time,
             half_life: store.half_life,
-            paths,
+            items: items,
         }
     }
 } 

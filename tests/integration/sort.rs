@@ -170,7 +170,7 @@ fn change_half_life_maintain_frecency() {
         .assert()
         .success();
 
-    let score_same = common::path_score_approx_equal("/".to_string(), 1.0);
+    let score_same = common::item_score_approx_equal("/".to_string(), 1.0);
 
     Command::main_binary()
         .unwrap()
@@ -194,7 +194,7 @@ fn change_half_life_new_decay() {
         .assert()
         .success();
 
-    let score_half = common::path_score_approx_equal("/home".to_string(), 3.0);
+    let score_half = common::item_score_approx_equal("/home".to_string(), 3.0);
 
     Command::main_binary()
         .unwrap()

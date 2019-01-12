@@ -31,29 +31,3 @@ fn version_short() {
     .assert()
     .stdout(expected_version);
 }
-
-
-#[test]
-fn purge() {
-  let store_file = common::get_tempfile_path();
-
-  Command::main_binary()
-    .unwrap()
-    .arg("--store")
-    .arg(&store_file.as_os_str())
-    .arg("--purge")
-    .assert();
-
-  let no_contains = predicate::str::contains("/home/nonexistant_dir\n").from_utf8().not();
-  let contains_root = predicate::str::contains("/\n").from_utf8();
-  let correct = no_contains.and(contains_root);
-
-
-  Command::main_binary()
-    .unwrap()
-    .arg("--store")
-    .arg(&store_file.as_os_str())
-    .arg("--sorted")
-    .assert()
-    .stdout(correct);
-}

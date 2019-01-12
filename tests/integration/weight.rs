@@ -42,7 +42,7 @@ fn add_existing_increases() {
     .assert();
 
 
-  let increased = common::path_score_approx_equal(dir, 3.0);
+  let increased = common::item_score_approx_equal(dir, 3.0);
 
   Command::main_binary()
     .unwrap()
@@ -83,34 +83,6 @@ fn add_create() {
 
 }
 
-#[test]
-fn add_relative() {
-  let store_file = common::get_tempfile_path();
-  let relative_dir = "/home/test/../random_relative_dir".to_string();
-  let absolute_dir = "/home/random_relative_dir".to_string();
-
-  Command::main_binary()
-    .unwrap()
-    .current_dir(std::env::temp_dir().as_os_str())
-    .arg("--store")
-    .arg(&store_file.as_os_str())
-    .arg("--add")
-    .arg(&relative_dir)
-    .assert()
-    .success();
-
-  let absolute_created_correctly = predicates::str::contains(absolute_dir).from_utf8();
-
-  Command::main_binary()
-    .unwrap()
-    .current_dir(std::env::temp_dir().as_os_str())
-    .arg("--store")
-    .arg(&store_file.as_os_str())
-    .arg("--sorted")
-    .assert()
-    .stdout(absolute_created_correctly);
-
-}
 
 
 #[test]
@@ -128,7 +100,7 @@ fn increase_accesses() {
     .assert()
     .success();
 
-  let accesses_increased_two = common::path_score_approx_equal(absolute_dir.clone(), 4.0);
+  let accesses_increased_two = common::item_score_approx_equal(absolute_dir.clone(), 4.0);
 
   Command::main_binary()
     .unwrap()
@@ -157,7 +129,7 @@ fn decrease_accesses() {
     .assert()
     .success();
 
-  let accesses_decreased_one = common::path_score_approx_equal(absolute_dir.clone(), 1.0);
+  let accesses_decreased_one = common::item_score_approx_equal(absolute_dir.clone(), 1.0);
 
   Command::main_binary()
     .unwrap()
@@ -188,7 +160,7 @@ fn increase_score() {
     .assert()
     .success();
 
-  let frecency_increased_two = common::path_score_approx_equal(absolute_dir.clone(), 5.0);
+  let frecency_increased_two = common::item_score_approx_equal(absolute_dir.clone(), 5.0);
 
   Command::main_binary()
     .unwrap()
@@ -219,7 +191,7 @@ fn decrease_score() {
     .assert()
     .success();
 
-  let frecency_decreased_one = common::path_score_approx_equal(absolute_dir.clone(), 2.0);
+  let frecency_decreased_one = common::item_score_approx_equal(absolute_dir.clone(), 2.0);
 
   Command::main_binary()
     .unwrap()
