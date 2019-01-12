@@ -15,7 +15,7 @@ pub fn read_store(path: &PathBuf) -> Result<FrecencyStore, io::Error> {
     if path.is_file() {
         let file = File::open(&path)?;
         let reader = BufReader::new(file);
-        let store: serialize::UsageStoreSerializer = serde_json::from_reader(reader)?;
+        let store: serialize::FrecencyStoreSerializer = serde_json::from_reader(reader)?;
         Ok(FrecencyStore::from(store))
     } else {
         Ok(FrecencyStore::default())
@@ -28,7 +28,7 @@ pub fn write_store(store: FrecencyStore, path: &PathBuf) -> io::Result<()> {
     fs::create_dir_all(&store_dir)?;
     let file = File::create(&path)?;
     let writer = BufWriter::new(file);
-    serde_json::to_writer_pretty(writer, &serialize::UsageStoreSerializer::from(store))?;
+    serde_json::to_writer_pretty(writer, &serialize::FrecencyStoreSerializer::from(store))?;
 
     Ok(())
 }
