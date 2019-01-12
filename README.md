@@ -29,19 +29,16 @@ fre --sorted | fzf
 fre --stat
 
 # Log a visit to a directory
-fre --add ~/new_dir
+fre --add /home/user/new_dir
 
 # Decrease weight of a directory by 10 visits
-fre --decrease 10 ~/too_high_dir
+fre --decrease 10 /home/user/too_high_dir
 
 # Print directories and the time since they were last visited in hours
 fre --stat --sort_method recent
 
 # Print directories and the number of times they've been visited
 fre --stat --sort_method frequent
-
-# Remove all directories that no longer exist from the database
-fre --purge 
 ```
 
 ## Installation
