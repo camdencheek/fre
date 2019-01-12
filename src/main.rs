@@ -1,6 +1,5 @@
 use log::error;
 use env_logger;
-use path_absolutize::*;
 use std::path::PathBuf;
 use std::str::FromStr;
 use fre::*;
@@ -66,15 +65,9 @@ fn main() {
     // Increment a directory
     if matches.is_present("add") {
         // This unwrap is okay because clap should catch a missing directory before this
-        let dir = matches.value_of("path").unwrap();
+        let item = matches.value_of("item").unwrap();
 
-        // Convert any relative paths to absolute
-        let absolute_path = match PathBuf::from(dir).absolutize() {
-            Ok(p) => p.to_string_lossy().into_owned(),
-            Err(e) => error_and_exit!("unable to get absolute path of {}: {}", dir, e),
-        };
-
-        usage.add(&absolute_path);
+        usage.add(&item);
     }
 
 
@@ -92,15 +85,10 @@ fn main() {
             _ => unreachable!(), // enforced by clap and block guard
         };
 
-        // Get the path to increase/decrease
-        let input_path = matches.value_of("path").unwrap(); // enforced by clap
+        // Get the item to increase/decrease
+        let item = matches.value_of("item").unwrap(); // enforced by clap
 
-        let absolute_path = match PathBuf::from(input_path).absolutize() {
-            Ok(path) => path.to_string_lossy().into_owned(),
-            Err(e) => error_and_exit!("unable to convert absolute path to string: {}", e)
-        };
-
-        usage.adjust(&absolute_path, weight);
+        usage.adjust(&item, weight);
     }
 
     // Truncate store to top N directories
