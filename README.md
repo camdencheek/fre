@@ -23,7 +23,7 @@ control-T bindings, modified to use `fre` as input. Some examples are below.
 Basic usage
 ```sh
 # Print directories, sorted by frecency, then pipe to fzf
-fre --sorted | fzf
+fre --sorted | fzf --no-sort
 
 # Print directories and their associated frecency, sorted by frecency
 fre --stat
