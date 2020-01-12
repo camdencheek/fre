@@ -128,10 +128,10 @@ This algorithm provides a much more intuitive implementation of frecency that te
 I use this regularly on MacOS and Linux. I wrote it to be usable on Windows as well, 
 but I don't run any tests for it. Caveat emptor.
 
-## TODO 
 
-- [ ] Investigate using `fre` as a source for tab completions à la `z`
-- [ ] Investigate accepting paths from stdin to sort
+## Stability
+
+I've been using this for over a year with no chnages now, and it does everything I need it to do. I'm happy to add features or accept changes if this is not the case for you.
 
 ## About the algorithm
 
