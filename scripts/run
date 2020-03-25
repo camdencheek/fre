@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export FRE_HOME="$(cd "$(dirname "$0")/.." && pwd)"
+
+cd "$FRE_HOME"
+rm -rf "target/release/fre" 2> /dev/null || true
+rm -rf "target/debug/fre" 2> /dev/null || true
+cargo run -- "$@"

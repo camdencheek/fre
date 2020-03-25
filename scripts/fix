@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export FRE_HOME="$(cd "$(dirname "$0")/.." && pwd)"
+source "${FRE_HOME}/scripts/install"
+
+cd "$FRE_HOME"
+
+header "Cargo nighly fix..."
+cargo +nightly fix --clippy -Z unstable-options || true
+
+header "Cargo fix..."
+cargo fix || true
+
+header "Cargo fmt..."
+cargo fmt || true
+
+header "dot code beautify..."
+find scripts -type f | xargs -I% dot code beautify % || true
+dot code beautify "${FRE_HOME}/tests/core.bash" || true
+dot code beautify "${FRE_HOME}/tests/run" || true
+
+header "clippy..."
+cargo clippy || true
