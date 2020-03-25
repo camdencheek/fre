@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+##? make install
+##? make uninstall
+
+export FRE_HOME="$(cd "$(dirname "$0")/.." && pwd)"
+source "${FRE_HOME}/scripts/install"
+
+install() {
+   export SOURCE_DIR="${SOURCE_DIR:-"$(get_source_dir)"}"
+   export BIN_DIR="${BIN_DIR:-"$(get_bin_dir)"}"
+   echoerr "The final binary will be available at ${BIN_DIR}/fre..."
+   "${FRE_HOME}/scripts/action" release
+   ln -s "${FRE_HOME}/target/tar/fre" "${BIN_DIR}/fre"
+}
+
+uninstall() {
+   export SOURCE_DIR="${SOURCE_DIR:-"$(get_source_dir)"}"
+   rm -rf "${FRE_HOME}/target"
+   rm "$SOURCE_DIR"
+}
+
+cmd="$1"
+shift
+
+case "$cmd" in
+   "install") install "$@" ;;
+   "uninstall") uninstall "$@" ;;
+esac
