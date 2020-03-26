@@ -174,7 +174,7 @@ download_asset() {
    curl -L "$url" -o fre.tar.gz
    tar xvzf fre.tar.gz
    rm -f fre.tar.gz
-   ln -s "${TMP_DIR}/fre" "${BIN_DIR}/fre"
+   cp "${TMP_DIR}/fre" "${BIN_DIR}/fre"
 }
 
 sha_for_asset_on_github() {
