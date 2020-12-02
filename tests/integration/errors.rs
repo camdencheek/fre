@@ -25,7 +25,7 @@ fn invalid_store() {
 fn non_writable() {
 
   let empty = predicates::str::is_empty().from_utf8();
-  let error = predicates::str::contains("Permission denied").from_utf8();
+  let error = predicates::str::is_empty().from_utf8().not();
 
   Command::main_binary()
     .unwrap()
