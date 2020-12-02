@@ -1,5 +1,5 @@
-mod flags;
 mod errors;
+mod flags;
 mod sort;
 mod weight;
 

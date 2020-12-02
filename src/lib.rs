@@ -1,9 +1,9 @@
 #[macro_use]
 extern crate serde_derive;
 
-use std::time::SystemTime;
 use log::error;
 use std::process;
+use std::time::SystemTime;
 
 pub mod args;
 pub mod stats;

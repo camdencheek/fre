@@ -1,26 +1,26 @@
-use std::io::Write;
-use tempfile;
-use std::collections::HashMap;
-use predicates::*;
-use std::str;
 use log::error;
+use predicates::*;
+use std::collections::HashMap;
+use std::io::Write;
 use std::process;
-use std::time::{SystemTime};
-
+use std::str;
+use std::time::SystemTime;
+use tempfile;
 
 pub fn get_tempfile_path() -> tempfile::TempPath {
-
     let mut file = tempfile::NamedTempFile::new().unwrap();
 
     let current_time = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-      Ok(n) => (n.as_secs() as u128 * 1000 + n.subsec_millis() as u128) as f64 / 1000.0,
-      Err(e) => {
-        error!("invalid system time: {}", e);
-        process::exit(1);
-      }
+        Ok(n) => (n.as_secs() as u128 * 1000 + n.subsec_millis() as u128) as f64 / 1000.0,
+        Err(e) => {
+            error!("invalid system time: {}", e);
+            process::exit(1);
+        }
     };
 
-    file.write(format!(r#"{{
+    file.write(
+        format!(
+            r#"{{
       "reference_time": {},
       "half_life": 259200.0,
       "items": [
@@ -43,32 +43,39 @@ pub fn get_tempfile_path() -> tempfile::TempPath {
           "num_accesses": 3
         }}
       ]
-    }}"#, current_time)
-        .as_bytes()).unwrap();
+    }}"#,
+            current_time
+        )
+        .as_bytes(),
+    )
+    .unwrap();
 
-    return file.into_temp_path()
+    return file.into_temp_path();
 }
-
 
 pub fn parse_scored_output(output: &str) -> Option<HashMap<String, f64>> {
     use std::f64;
 
     let mut out_map = HashMap::new();
-    for line in output.lines()  {
+    for line in output.lines() {
         let mut elems = line.split_whitespace();
-        let score: f64 = elems.next().expect("no score on this line").parse::<f64>().unwrap();
+        let score: f64 = elems
+            .next()
+            .expect("no score on this line")
+            .parse::<f64>()
+            .unwrap();
         let item = elems.next().expect("no item on this line");
         out_map.insert(item.to_string(), score);
     }
 
-    return Some(out_map)
+    return Some(out_map);
 }
-
 
 pub fn item_score_approx_equal(item: String, expected: f64) -> impl Predicate<[u8]> {
     predicates::function::function(move |x: &[u8]| {
         let map = parse_scored_output(str::from_utf8(x).expect("failed to parse utf8"));
-        let out_score = map.expect("failed to parse scored output")
+        let out_score = map
+            .expect("failed to parse scored output")
             .get(&item.clone())
             .expect("item doesn't exist in output")
             .clone();
@@ -77,8 +84,5 @@ pub fn item_score_approx_equal(item: String, expected: f64) -> impl Predicate<[u
 }
 
 pub fn n_results(n: usize) -> impl Predicate<[u8]> {
-    predicates::function::function(move |x: &[u8]| {
-        str::from_utf8(x).unwrap().lines().count() == n
-    })
+    predicates::function::function(move |x: &[u8]| str::from_utf8(x).unwrap().lines().count() == n)
 }
-

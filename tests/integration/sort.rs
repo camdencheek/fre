@@ -1,15 +1,15 @@
 use super::common;
 use assert_cmd::prelude::*;
-use std::process::Command;
 use predicates::prelude::*;
+use std::process::Command;
 use std::str;
 
 #[test]
 fn sorted_stats() {
     let store_file = common::get_tempfile_path();
 
-    let expected_sorted = predicate::str::similar("3\t/\n2\t/home\n1\t/home/nonexistant_dir\n")
-        .from_utf8();
+    let expected_sorted =
+        predicate::str::similar("3\t/\n2\t/home\n1\t/home/nonexistant_dir\n").from_utf8();
 
     Command::main_binary()
         .unwrap()
@@ -26,8 +26,7 @@ fn sorted_stats() {
 fn sorted_frecent() {
     let store_file = common::get_tempfile_path();
 
-    let expected_sorted = predicate::str::similar("/home\n/home/nonexistant_dir\n/\n")
-        .from_utf8();
+    let expected_sorted = predicate::str::similar("/home\n/home/nonexistant_dir\n/\n").from_utf8();
 
     Command::main_binary()
         .unwrap()
@@ -42,8 +41,7 @@ fn sorted_frecent() {
 fn sorted_recent() {
     let store_file = common::get_tempfile_path();
 
-    let expected_sorted = predicate::str::similar("/home/nonexistant_dir\n/\n/home\n")
-        .from_utf8();
+    let expected_sorted = predicate::str::similar("/home/nonexistant_dir\n/\n/home\n").from_utf8();
 
     Command::main_binary()
         .unwrap()
@@ -60,8 +58,7 @@ fn sorted_recent() {
 fn sorted_frequent() {
     let store_file = common::get_tempfile_path();
 
-    let expected_sorted = predicate::str::similar("/\n/home\n/home/nonexistant_dir\n")
-        .from_utf8();
+    let expected_sorted = predicate::str::similar("/\n/home\n/home/nonexistant_dir\n").from_utf8();
 
     Command::main_binary()
         .unwrap()
@@ -78,8 +75,7 @@ fn sorted_frequent() {
 fn sorted_invalid() {
     let store_file = common::get_tempfile_path();
 
-    let expected_error = predicate::str::contains("'badsort' isn't a valid value")
-        .from_utf8();
+    let expected_error = predicate::str::contains("'badsort' isn't a valid value").from_utf8();
 
     Command::main_binary()
         .unwrap()
@@ -105,10 +101,7 @@ fn truncate() {
         .assert()
         .success();
 
-
-    let two_lines = predicate::function(|x: &[u8]| {
-        str::from_utf8(x).unwrap().lines().count() == 2
-    });
+    let two_lines = predicate::function(|x: &[u8]| str::from_utf8(x).unwrap().lines().count() == 2);
 
     Command::main_binary()
         .unwrap()
@@ -117,7 +110,6 @@ fn truncate() {
         .arg("--stat")
         .assert()
         .stdout(two_lines);
-
 }
 
 #[test]
@@ -154,7 +146,6 @@ fn limit_too_many() {
         .assert()
         .success()
         .stdout(three_lines);
-
 }
 
 #[test]
@@ -204,4 +195,3 @@ fn change_half_life_new_decay() {
         .assert()
         .stdout(score_half);
 }
-
