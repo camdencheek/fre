@@ -1,7 +1,6 @@
 use env_logger;
 use fre::*;
 use log::error;
-use std::path::PathBuf;
 use std::str::FromStr;
 
 fn main() {

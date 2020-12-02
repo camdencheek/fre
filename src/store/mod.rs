@@ -7,7 +7,7 @@ use log::error;
 use std::default::Default;
 use std::fs::{self, File};
 use std::io::{self, BufReader, BufWriter, Write};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process;
 
 /// Parses the file at `path` into a `UsageStore` object
