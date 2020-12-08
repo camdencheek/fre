@@ -1,0 +1,46 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches:
+    - master
+jobs:
+  test:
+    name: test
+    env:
+      RUST_BACKTRACE: 1
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: cargo
+        profile: minimal
+        override: true
+
+    - name: Build fre
+      run: cargo build --verbose --all 
+
+    - name: Run tests
+      run: cargo test --verbose --all 
+
+  rustfmt:
+    name: rustfmt
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+        profile: minimal
+        components: rustfmt
+    - name: Check formatting
+      run: |
+        cargo fmt --all -- --check
+
