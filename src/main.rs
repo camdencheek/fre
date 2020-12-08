@@ -87,6 +87,12 @@ fn main() {
         usage.adjust(&item, weight);
     }
 
+    // Delete a directory
+    if matches.is_present("delete") {
+        let item = matches.value_of("item").unwrap();
+        usage.delete(item);
+    }
+
     // Truncate store to top N directories
     if let Some(n) = matches.value_of("truncate") {
         match n.parse::<usize>() {

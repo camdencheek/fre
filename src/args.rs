@@ -26,7 +26,7 @@ pub fn get_app() -> App<'static, 'static> {
             Arg::with_name("add")
                 .short("a")
                 .long("add")
-                .conflicts_with_all(&["increase", "decrease"])
+                .conflicts_with_all(&["increase", "decrease", "delete", "sorted"])
                 .requires("item")
                 .help("Add a visit to ITEM to the store"),
         )
@@ -35,7 +35,7 @@ pub fn get_app() -> App<'static, 'static> {
                 .short("i")
                 .long("increase")
                 .help("Increase the weight of an item by WEIGHT")
-                .conflicts_with_all(&["add", "decrease"])
+                .conflicts_with_all(&["add", "decrease", "delete", "sorted"])
                 .requires("item")
                 .value_name("WEIGHT")
                 .takes_value(true),
@@ -44,11 +44,19 @@ pub fn get_app() -> App<'static, 'static> {
             Arg::with_name("decrease")
                 .short("d")
                 .long("decrease")
-                .conflicts_with_all(&["increase", "add"])
+                .conflicts_with_all(&["increase", "add", "delete", "sorted"])
                 .requires("item")
                 .help("Decrease the weight of a path by WEIGHT")
                 .value_name("WEIGHT")
                 .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("delete")
+                .short("D")
+                .long("delete")
+                .conflicts_with_all(&["increase", "add", "decrease", "sorted"])
+                .requires("item")
+                .help("Delete an item from the store"),
         )
         .arg(
             Arg::with_name("sorted")

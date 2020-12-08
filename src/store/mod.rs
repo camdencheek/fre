@@ -101,6 +101,13 @@ impl FrecencyStore {
         item_stats.update_num_accesses(weight as i32);
     }
 
+    /// Delete an item from the store
+    pub fn delete(&mut self, item: &str) {
+        if let Some(idx) = self.items.iter().position(|i| i.item == item) {
+            self.items.remove(idx);
+        }
+    }
+
     /// Print out all the items, sorted by `method`, with an optional maximum of `limit`
     pub fn print_sorted(&self, method: &SortMethod, show_stats: bool, limit: Option<usize>) {
         let stdout = io::stdout();
@@ -177,6 +184,22 @@ mod tests {
         usage.add("test");
 
         assert_that!(usage.items.len()).is_equal_to(1);
+    }
+
+    #[test]
+    fn delete_existing() {
+        let mut usage = create_usage();
+        usage.add("test");
+        assert_that!(usage.items.len()).is_equal_to(1);
+        usage.delete("test");
+        assert_that!(usage.items.len()).is_equal_to(0);
+    }
+
+    #[test]
+    fn delete_nonexisting() {
+        let mut usage = create_usage();
+        usage.delete("test");
+        assert_that!(usage.items.len()).is_equal_to(0);
     }
 
     #[test]
