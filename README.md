@@ -43,7 +43,13 @@ fre --stat --sort_method frequent
 
 ## Installation
 
-To install, simply `cargo install fre`.
+From source: `git clone https://github.com/camdencheek/fre.git && cargo install --path ./fre`
+
+From crate: `cargo install fre`
+
+Arch linux: `yay -S fre`
+
+macOS: `brew install camdencheek/brew/fre`
 
 For integration with `fzf` CTRL-T, define the following environment variables 
 ```zsh
