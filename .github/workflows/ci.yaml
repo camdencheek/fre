@@ -9,7 +9,7 @@ jobs:
     name: test
     env:
       RUST_BACKTRACE: 1
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -29,7 +29,7 @@ jobs:
 
   rustfmt:
     name: rustfmt
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -42,5 +42,5 @@ jobs:
         components: rustfmt
     - name: Check formatting
       run: |
-        cargo fmt --all -- --check
+        cargo fmt -- --check
 
