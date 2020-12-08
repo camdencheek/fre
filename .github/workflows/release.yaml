@@ -14,8 +14,8 @@ name: release
 on:
   push:
     # Enable when testing release infrastructure on a branch.
-    branches:
-    - add-ci
+    # branches:
+    # - add-ci
     tags:
     - '[0-9]+.[0-9]+.[0-9]+'
 jobs:
@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Set to force version number, e.g., when no tag exists.
-      FRE_VERSION: TEST-0.0.0
+      # FRE_VERSION: TEST-0.0.0
     steps:
       - name: Create artifacts directory
         run: mkdir artifacts
