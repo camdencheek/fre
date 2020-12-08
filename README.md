@@ -39,6 +39,9 @@ fre --stat --sort_method recent
 
 # Print directories and the number of times they've been visited
 fre --stat --sort_method frequent
+
+# Purge directories that no longer exist
+fre --sorted | while read dir ; do if [ ! -d "$dir" ] ; then fre --delete "$dir";  fi ; done
 ```
 
 ## Installation
