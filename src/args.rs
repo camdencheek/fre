@@ -149,9 +149,9 @@ pub fn default_store(filename: Option<&str>) -> PathBuf {
         }
     };
 
-    let mut store_file = store_dir.clone();
     let default = format!("{}.json", env!("CARGO_PKG_NAME"));
     let filename = filename.unwrap_or(&default);
+    let mut store_file = store_dir;
     store_file.push(filename);
 
     store_file.to_path_buf()

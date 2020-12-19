@@ -70,7 +70,7 @@ impl FrecencyStore {
 
     /// Return the number of half lives passed since the reference time
     pub fn half_lives_passed(&self) -> f64 {
-        return (current_time_secs() - self.reference_time) / self.half_life as f64;
+        (current_time_secs() - self.reference_time) / self.half_life as f64
     }
 
     /// Reset the reference time to now, and reweight all the statistics to reflect that

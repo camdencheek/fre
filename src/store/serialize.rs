@@ -37,7 +37,7 @@ impl From<FrecencyStoreSerializer> for FrecencyStore {
         FrecencyStore {
             reference_time: store.reference_time,
             half_life: store.half_life,
-            items: items,
+            items,
         }
     }
 }

@@ -1,4 +1,3 @@
-use env_logger;
 use fre::*;
 use log::error;
 use std::str::FromStr;
