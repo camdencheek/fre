@@ -1,14 +1,14 @@
 mod serialize;
 
-use super::stats::ItemStats;
 use super::current_time_secs;
+use super::stats::ItemStats;
 use super::SortMethod;
-use std::default::Default;
-use std::io::{self, BufWriter, BufReader, Write};
-use std::fs::{self, File};
-use std::path::{Path, PathBuf};
-use std::process;
 use log::error;
+use std::default::Default;
+use std::fs::{self, File};
+use std::io::{self, BufReader, BufWriter, Write};
+use std::path::PathBuf;
+use std::process;
 
 /// Parses the file at `path` into a `UsageStore` object
 pub fn read_store(path: &PathBuf) -> Result<FrecencyStore, io::Error> {
@@ -58,7 +58,6 @@ impl FrecencyStore {
         self.items = sorted_vec;
     }
 
-
     /// Change the half life and reweight such that frecency does not change
     pub fn set_half_life(&mut self, half_life: f32) {
         self.reset_time();
@@ -71,7 +70,7 @@ impl FrecencyStore {
 
     /// Return the number of half lives passed since the reference time
     pub fn half_lives_passed(&self) -> f64 {
-        return (current_time_secs() - self.reference_time ) / self.half_life as f64
+        (current_time_secs() - self.reference_time) / self.half_life as f64
     }
 
     /// Reset the reference time to now, and reweight all the statistics to reflect that
@@ -102,6 +101,12 @@ impl FrecencyStore {
         item_stats.update_num_accesses(weight as i32);
     }
 
+    /// Delete an item from the store
+    pub fn delete(&mut self, item: &str) {
+        if let Some(idx) = self.items.iter().position(|i| i.item == item) {
+            self.items.remove(idx);
+        }
+    }
 
     /// Print out all the items, sorted by `method`, with an optional maximum of `limit`
     pub fn print_sorted(&self, method: &SortMethod, show_stats: bool, limit: Option<usize>) {
@@ -113,20 +118,19 @@ impl FrecencyStore {
         let take_num = limit.unwrap_or_else(|| sorted.len());
 
         for item in sorted.iter().take(take_num) {
-            writer.write_all(item.to_string(method, show_stats).as_bytes())
+            writer
+                .write_all(item.to_string(method, show_stats).as_bytes())
                 .unwrap_or_else(|e| {
                     error!("unable to write to stdout: {}", e);
                     process::exit(1);
-               });
+                });
         }
     }
 
     /// Return a sorted vector of all the items in the store, sorted by `sort_method`
     fn sorted(&self, sort_method: &SortMethod) -> Vec<ItemStats> {
         let mut new_vec = self.items.clone();
-        new_vec.sort_by(|item1, item2| {
-            item1.cmp_score(item2, sort_method).reverse()
-        });
+        new_vec.sort_by(|item1, item2| item1.cmp_score(item2, sort_method).reverse());
 
         new_vec
     }
@@ -134,7 +138,10 @@ impl FrecencyStore {
     /// Retrieve a mutable reference to a item in the store.
     /// If the item does not exist, create it and return a reference to the created item
     fn get(&mut self, item: &str) -> &mut ItemStats {
-        match self.items.binary_search_by_key(&item, |item_stats| &item_stats.item) {
+        match self
+            .items
+            .binary_search_by_key(&item, |item_stats| &item_stats.item)
+        {
             Ok(idx) => &mut self.items[idx],
             Err(idx) => {
                 self.items.insert(
@@ -180,6 +187,22 @@ mod tests {
     }
 
     #[test]
+    fn delete_existing() {
+        let mut usage = create_usage();
+        usage.add("test");
+        assert_that!(usage.items.len()).is_equal_to(1);
+        usage.delete("test");
+        assert_that!(usage.items.len()).is_equal_to(0);
+    }
+
+    #[test]
+    fn delete_nonexisting() {
+        let mut usage = create_usage();
+        usage.delete("test");
+        assert_that!(usage.items.len()).is_equal_to(0);
+    }
+
+    #[test]
     fn adjust_existing() {
         let mut usage = create_usage();
 
@@ -197,8 +220,6 @@ mod tests {
 
         assert_that!(usage.items.len()).is_equal_to(1);
     }
-
-
 
     #[test]
     fn truncate_greater() {
@@ -253,7 +274,9 @@ mod tests {
         let mut usage = create_usage();
         usage.add("dir1");
         usage.add("dir2");
-        usage.get("dir2").update_last_access(current_time_secs() + 100.0);
+        usage
+            .get("dir2")
+            .update_last_access(current_time_secs() + 100.0);
 
         let sorted = usage.sorted(&SortMethod::Recent);
 

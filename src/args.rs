@@ -1,8 +1,8 @@
-use clap::{App, Arg, ArgMatches, AppSettings};
+use clap::{App, AppSettings, Arg, ArgMatches};
 use directories::ProjectDirs;
+use log::error;
 use std::path::PathBuf;
 use std::process;
-use log::error;
 
 /// Returns Ok(_) if input string  can be parsed as an int.
 /// Used for argument validation.
@@ -22,77 +22,111 @@ pub fn get_app() -> App<'static, 'static> {
         .setting(AppSettings::ColoredHelp)
         .setting(AppSettings::DeriveDisplayOrder)
         .setting(AppSettings::NextLineHelp)
-        .arg(Arg::with_name("add")
-            .short("a")
-            .long("add")
-            .conflicts_with_all(&["increase", "decrease"])
-            .requires("item")
-            .help("Add a visit to ITEM to the store"))
-        .arg(Arg::with_name("increase")
-            .short("i")
-            .long("increase")
-            .help("Increase the weight of an item by WEIGHT")
-            .conflicts_with_all(&["add", "decrease"])
-            .requires("item")
-            .value_name("WEIGHT")
-            .takes_value(true))
-        .arg(Arg::with_name("decrease")
-            .short("d")
-            .long("decrease")
-            .conflicts_with_all(&["increase", "add"])
-            .requires("item")
-            .help("Decrease the weight of a path by WEIGHT")
-            .value_name("WEIGHT")
-            .takes_value(true))
-        .arg(Arg::with_name("sorted")
-            .long("sorted")
-            .group("lists")
-            .help("Print the stored directories in order of highest to lowest score"))
-        .arg(Arg::with_name("stat")
-            .short("s")
-            .group("lists")
-            .long("stat")
-            .help("Print statistics about the stored directories"))
-        .arg(Arg::with_name("sort_method")
-            .long("sort_method")
-            .help("The method to sort by most used")
-            .takes_value(true)
-            .possible_values(&["frecent", "frequent", "recent"])
-            .default_value("frecent"))
-        .arg(Arg::with_name("limit")
-            .long("limit")
-            .short("l")
-            .takes_value(true)
-            .requires("lists")
-            .help("Limit the number of results printed --sorted"))
-        .arg(Arg::with_name("store")
-            .long("store")
-            .value_name("FILE")
-            .conflicts_with_all(&["store_name"])
-            .help("Use a non-default store file")
-            .takes_value(true))
-        .arg(Arg::with_name("store_name")
-            .long("store_name")
-            .value_name("FILE")
-            .conflicts_with_all(&["store"])
-            .help("Use a non-default filename for the store file in the default store directory")
-            .takes_value(true))
-        .arg(Arg::with_name("truncate")
-            .short("T")
-            .long("truncate")
-            .help("Truncate the stored directories to only the top N")
-            .value_name("N")
-            .validator(is_int)
-            .takes_value(true))
-        .arg(Arg::with_name("halflife")
-            .long("halflife")
-            .help("Change the halflife to N seconds")
-            .value_name("N")
-            .takes_value(true))
-        .arg(Arg::with_name("item")
-            .index(1)
-            .value_name("ITEM")
-            .help("The item to update"))
+        .arg(
+            Arg::with_name("add")
+                .short("a")
+                .long("add")
+                .conflicts_with_all(&["increase", "decrease", "delete", "sorted"])
+                .requires("item")
+                .help("Add a visit to ITEM to the store"),
+        )
+        .arg(
+            Arg::with_name("increase")
+                .short("i")
+                .long("increase")
+                .help("Increase the weight of an item by WEIGHT")
+                .conflicts_with_all(&["add", "decrease", "delete", "sorted"])
+                .requires("item")
+                .value_name("WEIGHT")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("decrease")
+                .short("d")
+                .long("decrease")
+                .conflicts_with_all(&["increase", "add", "delete", "sorted"])
+                .requires("item")
+                .help("Decrease the weight of a path by WEIGHT")
+                .value_name("WEIGHT")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("delete")
+                .short("D")
+                .long("delete")
+                .conflicts_with_all(&["increase", "add", "decrease", "sorted"])
+                .requires("item")
+                .help("Delete an item from the store"),
+        )
+        .arg(
+            Arg::with_name("sorted")
+                .long("sorted")
+                .group("lists")
+                .help("Print the stored directories in order of highest to lowest score"),
+        )
+        .arg(
+            Arg::with_name("stat")
+                .short("s")
+                .group("lists")
+                .long("stat")
+                .help("Print statistics about the stored directories"),
+        )
+        .arg(
+            Arg::with_name("sort_method")
+                .long("sort_method")
+                .help("The method to sort by most used")
+                .takes_value(true)
+                .possible_values(&["frecent", "frequent", "recent"])
+                .default_value("frecent"),
+        )
+        .arg(
+            Arg::with_name("limit")
+                .long("limit")
+                .short("l")
+                .takes_value(true)
+                .requires("lists")
+                .help("Limit the number of results printed --sorted"),
+        )
+        .arg(
+            Arg::with_name("store")
+                .long("store")
+                .value_name("FILE")
+                .conflicts_with_all(&["store_name"])
+                .help("Use a non-default store file")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("store_name")
+                .long("store_name")
+                .value_name("FILE")
+                .conflicts_with_all(&["store"])
+                .help(
+                    "Use a non-default filename for the store file in the default store directory",
+                )
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("truncate")
+                .short("T")
+                .long("truncate")
+                .help("Truncate the stored directories to only the top N")
+                .value_name("N")
+                .validator(is_int)
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("halflife")
+                .long("halflife")
+                .help("Change the halflife to N seconds")
+                .value_name("N")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("item")
+                .index(1)
+                .value_name("ITEM")
+                .help("The item to update"),
+        )
 }
 
 /// Given the argument matches, return the path of the store file.
@@ -115,9 +149,9 @@ pub fn default_store(filename: Option<&str>) -> PathBuf {
         }
     };
 
-    let mut store_file = store_dir.clone();
     let default = format!("{}.json", env!("CARGO_PKG_NAME"));
     let filename = filename.unwrap_or(&default);
+    let mut store_file = store_dir;
     store_file.push(filename);
 
     store_file.to_path_buf()

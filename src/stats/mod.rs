@@ -1,5 +1,5 @@
-use super::SortMethod;
 use super::current_time_secs;
+use super::SortMethod;
 use std::cmp::Ordering;
 
 pub mod serialize;
@@ -56,7 +56,6 @@ impl ItemStats {
             .unwrap_or(Ordering::Less)
     }
 
-
     /// Change the half life of the item, maintaining the same frecency
     pub fn set_half_life(&mut self, half_life: f32) {
         let old_frecency = self.get_frecency();
@@ -66,15 +65,12 @@ impl ItemStats {
 
     /// Calculate the frecency of the item
     pub fn get_frecency(&self) -> f32 {
-        self.frecency / 2.0f32.powf(
-            secs_elapsed(self.reference_time) as f32 / self.half_life
-        )
+        self.frecency / 2.0f32.powf(secs_elapsed(self.reference_time) as f32 / self.half_life)
     }
 
     pub fn set_frecency(&mut self, new: f32) {
-        self.frecency = new * 2.0f32.powf(
-            secs_elapsed(self.reference_time) as f32 / self.half_life
-        );
+        self.frecency =
+            new * 2.0f32.powf(secs_elapsed(self.reference_time) as f32 / self.half_life);
     }
 
     /// update the frecency of the item by the given weight
@@ -107,7 +103,6 @@ impl ItemStats {
         secs_elapsed(self.reference_time) - self.last_accessed
     }
 
-
     /// sort method if `show_stats` is `true`
     pub fn to_string(&self, method: &SortMethod, show_stats: bool) -> String {
         if show_stats {
@@ -117,16 +112,8 @@ impl ItemStats {
                     self.secs_since_access() / 60.0 / 60.0,
                     self.item
                 ),
-                SortMethod::Frequent => format!(
-                    "{: <}\t{}\n",
-                    self.num_accesses,
-                    self.item
-                ),
-                SortMethod::Frecent => format!(
-                    "{: <.3}\t{}\n",
-                    self.get_frecency(),
-                    self.item
-                ),
+                SortMethod::Frequent => format!("{: <}\t{}\n", self.num_accesses, self.item),
+                SortMethod::Frecent => format!("{: <.3}\t{}\n", self.get_frecency(), self.item),
             }
         } else {
             return format!("{}\n", self.item.clone());
@@ -138,7 +125,6 @@ impl ItemStats {
 pub fn secs_elapsed(ref_time: f64) -> f32 {
     (current_time_secs() - ref_time) as f32
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -171,7 +157,6 @@ mod tests {
         assert_eq!(new_item_stats.frecency, 0.0);
     }
 
-
     #[test]
     fn compare_with_func() {
         let low_item_stats = create_item();
@@ -183,9 +168,11 @@ mod tests {
 
         assert_eq!(Ordering::Less, low_item_stats.cmp_frecent(&high_item_stats));
         assert_eq!(Ordering::Less, low_item_stats.cmp_recent(&high_item_stats));
-        assert_eq!(Ordering::Less, low_item_stats.cmp_frequent(&high_item_stats));
+        assert_eq!(
+            Ordering::Less,
+            low_item_stats.cmp_frequent(&high_item_stats)
+        );
     }
-
 
     #[test]
     fn compare_with_enum() {
@@ -196,11 +183,19 @@ mod tests {
         high_item_stats.last_accessed = 1.0;
         high_item_stats.num_accesses = 1;
 
-        assert_eq!(Ordering::Less, low_item_stats.cmp_score(&high_item_stats, &SortMethod::Frecent));
-        assert_eq!(Ordering::Less, low_item_stats.cmp_score(&high_item_stats, &SortMethod::Recent));
-        assert_eq!(Ordering::Less, low_item_stats.cmp_score(&high_item_stats, &SortMethod::Frequent));
+        assert_eq!(
+            Ordering::Less,
+            low_item_stats.cmp_score(&high_item_stats, &SortMethod::Frecent)
+        );
+        assert_eq!(
+            Ordering::Less,
+            low_item_stats.cmp_score(&high_item_stats, &SortMethod::Recent)
+        );
+        assert_eq!(
+            Ordering::Less,
+            low_item_stats.cmp_score(&high_item_stats, &SortMethod::Frequent)
+        );
     }
-
 
     #[test]
     fn update_score() {
@@ -211,7 +206,6 @@ mod tests {
         assert_that!(low_item_stats.frecency).is_close_to(1.0, 0.01);
         assert_that!(low_item_stats.num_accesses).is_equal_to(0);
     }
-
 
     #[test]
     fn update_num_accesses() {
@@ -231,7 +225,6 @@ mod tests {
 
         assert_that!(low_item_stats.secs_since_access()).is_close_to(0.0, 0.1);
     }
-
 
     #[test]
     fn to_string_no_stats() {
@@ -264,8 +257,7 @@ mod tests {
         low_item_stats.reset_ref_time(current_time_secs() - 1.0);
         low_item_stats.frecency = 1.0;
 
-        assert_that!(low_item_stats.get_frecency())
-            .is_close_to(0.5, 0.1);
+        assert_that!(low_item_stats.get_frecency()).is_close_to(0.5, 0.1);
     }
 
     #[test]
@@ -275,8 +267,7 @@ mod tests {
         low_item_stats.reset_ref_time(current_time_secs() - 2.0);
         low_item_stats.frecency = 1.0;
 
-        assert_that!(low_item_stats.get_frecency())
-            .is_close_to(0.25, 0.1);
+        assert_that!(low_item_stats.get_frecency()).is_close_to(0.25, 0.1);
     }
 
     #[test]
