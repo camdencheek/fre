@@ -1,7 +1,7 @@
 [package]
 name = "fre"
 version = "0.3.1"
-authors = ["Camden Cheek <ccheek22@gmail.com>"]
+authors = ["Camden Cheek <camden@ccheek.com>"]
 description = "A command line frecency tracking tool"
 edition = '2018'
 license = 'MIT'
