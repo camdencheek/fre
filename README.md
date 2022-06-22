@@ -74,6 +74,8 @@ export FZF_CTRL_T_OPTS='--tiebreak=index'
 
 ### Shell integration
 
+Don't see your shell here? feel free to open a PR to add it!
+
 #### zsh
 (credit to `autojump`)
 
@@ -93,13 +95,6 @@ In your `~/.profile`:
 ```zsh
 PROMPT_COMMAND="${PROMPT_COMMAND:+$(echo "${PROMPT_COMMAND}" | awk '{gsub(/; *$/,"")}2') ; }"'fre --add "$(pwd)"'
 ```
-
-More shells to come
-
-### Vim integration
-
-Want to track what files are most frecently opened in vim? Me too. I'm working on making that functional.
-
 
 ## Comparison to existing solutions
 
@@ -149,7 +144,7 @@ but I don't run any tests for it. Caveat emptor.
 
 ## Stability
 
-I've been using this for over a year with no chnages now, and it does everything I need it to do. I'm happy to add features or accept changes if this is not the case for you.
+I've been using this for over a year with no changes now, and it does everything I need it to do. I'm happy to add features or accept changes if this is not the case for you.
 
 ## About the algorithm
 
