@@ -85,6 +85,15 @@ typeset -gaU chpwd_functions
 chpwd_functions+=fre_chpwd
 ```
 
+#### bash
+(credit to `autojump`)
+
+In your `~/.profile`:
+
+```zsh
+PROMPT_COMMAND="${PROMPT_COMMAND:+$(echo "${PROMPT_COMMAND}" | awk '{gsub(/; *$/,"")}2') ; }"'fre --add "$(pwd)"'
+```
+
 More shells to come
 
 ### Vim integration
