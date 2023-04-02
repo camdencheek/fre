@@ -1,0 +1,36 @@
+#! /bin/sh
+
+set -u
+
+FRE=$(command -v fre)
+
+# use fre for persisting choices
+if [ -x "${FRE}" ]; then
+  XDG_STATE_HOME=${XDG_STATE_HOME:-${HOME}/.local/state}
+  STORE_NAME="${0##*/}.json"
+else
+  FRE=":"
+  STORE_NAME=""
+fi
+
+EXT="gpg"
+NAME=$(
+  {
+    ${FRE} --store_name="${STORE_NAME}" --sorted
+    pass git ls-files "*.${EXT}" | sed -e "s/\.${EXT}$//"
+  } | awk '!x[$0]++' | fzf-tmux
+)
+
+if [ -z "${NAME}" ]; then
+  exit
+fi
+
+# save selection
+${FRE} --store_name="${STORE_NAME}" -a "${NAME}"
+
+if [ "${1:-}" = "--paste" ]; then
+  PASSWORD=$(pass show "${NAME}" | head -n1)
+  tmux send-keys "${PASSWORD}"
+else
+  pass show -c "${NAME}" > /dev/null
+fi
