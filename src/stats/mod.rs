@@ -29,7 +29,7 @@ impl ItemStats {
     }
 
     /// Compare the score of two items given a sort method
-    pub fn cmp_score(&self, other: &ItemStats, method: &SortMethod) -> Ordering {
+    pub fn cmp_score(&self, other: &ItemStats, method: SortMethod) -> Ordering {
         match method {
             SortMethod::Frequent => self.cmp_frequent(other),
             SortMethod::Recent => self.cmp_recent(other),
@@ -104,7 +104,7 @@ impl ItemStats {
     }
 
     /// sort method if `show_stats` is `true`
-    pub fn to_string(&self, method: &SortMethod, show_stats: bool) -> String {
+    pub fn to_string(&self, method: SortMethod, show_stats: bool) -> String {
         if show_stats {
             match method {
                 SortMethod::Recent => format!(
@@ -185,15 +185,15 @@ mod tests {
 
         assert_eq!(
             Ordering::Less,
-            low_item_stats.cmp_score(&high_item_stats, &SortMethod::Frecent)
+            low_item_stats.cmp_score(&high_item_stats, SortMethod::Frecent)
         );
         assert_eq!(
             Ordering::Less,
-            low_item_stats.cmp_score(&high_item_stats, &SortMethod::Recent)
+            low_item_stats.cmp_score(&high_item_stats, SortMethod::Recent)
         );
         assert_eq!(
             Ordering::Less,
-            low_item_stats.cmp_score(&high_item_stats, &SortMethod::Frequent)
+            low_item_stats.cmp_score(&high_item_stats, SortMethod::Frequent)
         );
     }
 
@@ -230,11 +230,11 @@ mod tests {
     fn to_string_no_stats() {
         let low_item_stats = create_item();
 
-        assert_that!(low_item_stats.to_string(&SortMethod::Frecent, false))
+        assert_that!(low_item_stats.to_string(SortMethod::Frecent, false))
             .is_equal_to("/test/item\n".to_string());
-        assert_that!(low_item_stats.to_string(&SortMethod::Recent, false))
+        assert_that!(low_item_stats.to_string(SortMethod::Recent, false))
             .is_equal_to("/test/item\n".to_string());
-        assert_that!(low_item_stats.to_string(&SortMethod::Frequent, false))
+        assert_that!(low_item_stats.to_string(SortMethod::Frequent, false))
             .is_equal_to("/test/item\n".to_string());
     }
 
@@ -242,11 +242,11 @@ mod tests {
     fn to_string_stats() {
         let low_item_stats = create_item();
 
-        assert_that!(low_item_stats.to_string(&SortMethod::Frecent, true))
+        assert_that!(low_item_stats.to_string(SortMethod::Frecent, true))
             .is_equal_to("0.000\t/test/item\n".to_string());
-        assert_that!(low_item_stats.to_string(&SortMethod::Recent, true))
+        assert_that!(low_item_stats.to_string(SortMethod::Recent, true))
             .is_equal_to("0.000\t/test/item\n".to_string());
-        assert_that!(low_item_stats.to_string(&SortMethod::Frequent, true))
+        assert_that!(low_item_stats.to_string(SortMethod::Frequent, true))
             .is_equal_to("0\t/test/item\n".to_string());
     }
 

@@ -52,7 +52,7 @@ impl Default for FrecencyStore {
 
 impl FrecencyStore {
     /// Remove all but the top N (sorted by `sort_method`) from the `UsageStore`
-    pub fn truncate(&mut self, keep_num: usize, sort_method: &SortMethod) {
+    pub fn truncate(&mut self, keep_num: usize, sort_method: SortMethod) {
         let mut sorted_vec = self.sorted(sort_method);
         sorted_vec.truncate(keep_num);
         self.items = sorted_vec;
@@ -109,7 +109,7 @@ impl FrecencyStore {
     }
 
     /// Print out all the items, sorted by `method`, with an optional maximum of `limit`
-    pub fn print_sorted(&self, method: &SortMethod, show_stats: bool, limit: Option<usize>) {
+    pub fn print_sorted(&self, method: SortMethod, show_stats: bool, limit: Option<usize>) {
         let stdout = io::stdout();
         let handle = stdout.lock();
         let mut writer = BufWriter::new(handle);
@@ -128,7 +128,7 @@ impl FrecencyStore {
     }
 
     /// Return a sorted vector of all the items in the store, sorted by `sort_method`
-    fn sorted(&self, sort_method: &SortMethod) -> Vec<ItemStats> {
+    fn sorted(&self, sort_method: SortMethod) -> Vec<ItemStats> {
         let mut new_vec = self.items.clone();
         new_vec.sort_by(|item1, item2| item1.cmp_score(item2, sort_method).reverse());
 
@@ -227,7 +227,7 @@ mod tests {
         usage.add("dir1");
         usage.add("dir2");
 
-        usage.truncate(1, &SortMethod::Recent);
+        usage.truncate(1, SortMethod::Recent);
 
         assert_that!(usage.items.len()).is_equal_to(1);
     }
@@ -238,7 +238,7 @@ mod tests {
         usage.add("dir1");
         usage.add("dir2");
 
-        usage.truncate(3, &SortMethod::Recent);
+        usage.truncate(3, SortMethod::Recent);
 
         assert_that!(usage.items.len()).is_equal_to(2);
     }
@@ -250,7 +250,7 @@ mod tests {
         usage.add("dir2");
         usage.get("dir2").update_frecency(1000.0);
 
-        let sorted = usage.sorted(&SortMethod::Frecent);
+        let sorted = usage.sorted(SortMethod::Frecent);
 
         assert_that!(sorted.len()).is_equal_to(2);
         assert_that!(sorted[0].item).is_equal_to("dir2".to_string());
@@ -263,7 +263,7 @@ mod tests {
         usage.add("dir2");
         usage.get("dir1").update_frecency(1000.0);
 
-        let sorted = usage.sorted(&SortMethod::Frecent);
+        let sorted = usage.sorted(SortMethod::Frecent);
 
         assert_that!(sorted.len()).is_equal_to(2);
         assert_that!(sorted[0].item).is_equal_to("dir1".to_string());
@@ -278,7 +278,7 @@ mod tests {
             .get("dir2")
             .update_last_access(current_time_secs() + 100.0);
 
-        let sorted = usage.sorted(&SortMethod::Recent);
+        let sorted = usage.sorted(SortMethod::Recent);
 
         assert_that!(sorted.len()).is_equal_to(2);
         assert_that!(sorted[0].item).is_equal_to("dir2".to_string());
@@ -291,7 +291,7 @@ mod tests {
         usage.add("dir2");
         usage.get("dir2").update_num_accesses(100);
 
-        let sorted = usage.sorted(&SortMethod::Frequent);
+        let sorted = usage.sorted(SortMethod::Frequent);
 
         assert_that!(sorted.len()).is_equal_to(2);
         assert_that!(sorted[0].item).is_equal_to("dir2".to_string());

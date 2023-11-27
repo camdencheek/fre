@@ -49,11 +49,11 @@ fn main() {
         // If a limit is specified, parse it and use it
         if let Some(s) = matches.value_of("limit") {
             match s.parse::<usize>() {
-                Ok(l) => usage.print_sorted(&sort_method, matches.is_present("stat"), Some(l)),
+                Ok(l) => usage.print_sorted(sort_method, matches.is_present("stat"), Some(l)),
                 Err(_) => error_and_exit!("invalid limit '{}'", s),
             };
         } else {
-            usage.print_sorted(&sort_method, matches.is_present("stat"), None);
+            usage.print_sorted(sort_method, matches.is_present("stat"), None);
         }
     }
 
@@ -95,7 +95,7 @@ fn main() {
     // Truncate store to top N directories
     if let Some(n) = matches.value_of("truncate") {
         match n.parse::<usize>() {
-            Ok(keep_num) => usage.truncate(keep_num, &sort_method),
+            Ok(keep_num) => usage.truncate(keep_num, sort_method),
             Err(_) => error_and_exit!("invalid truncate limit '{}'", n),
         }
     }

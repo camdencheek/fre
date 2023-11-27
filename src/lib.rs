@@ -9,7 +9,7 @@ pub mod args;
 pub mod stats;
 pub mod store;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum SortMethod {
     Recent,
     Frequent,
