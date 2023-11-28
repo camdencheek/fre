@@ -1,6 +1,6 @@
+use anyhow::{anyhow, Context, Result};
 use clap::{App, AppSettings, Arg, ArgMatches};
 use directories::ProjectDirs;
-use log::error;
 use std::path::PathBuf;
 use std::process;
 
@@ -130,9 +130,9 @@ pub fn get_app() -> App<'static, 'static> {
 }
 
 /// Given the argument matches, return the path of the store file.
-pub fn get_store_path(matches: &ArgMatches) -> PathBuf {
+pub fn get_store_path(matches: &ArgMatches) -> Result<PathBuf> {
     match (matches.value_of("store"), matches.value_of("store_name")) {
-        (Some(dir), None) => PathBuf::from(dir),
+        (Some(dir), None) => Ok(PathBuf::from(dir)),
         (None, file) => default_store(file),
         _ => unreachable!(),
     }
@@ -140,13 +140,10 @@ pub fn get_store_path(matches: &ArgMatches) -> PathBuf {
 
 /// Return a path to a store file in the default location.
 /// Uses filename as the name of the file if it is not `None`.
-pub fn default_store(filename: Option<&str>) -> PathBuf {
+pub fn default_store(filename: Option<&str>) -> Result<PathBuf> {
     let store_dir = match ProjectDirs::from("", "", env!("CARGO_PKG_NAME")) {
         Some(dir) => dir.data_dir().to_path_buf(),
-        None => {
-            error!("Failed to detect default data directory");
-            process::exit(1);
-        }
+        None => return Err(anyhow!("failed to determine default store directory")),
     };
 
     let default = format!("{}.json", env!("CARGO_PKG_NAME"));
@@ -154,7 +151,7 @@ pub fn default_store(filename: Option<&str>) -> PathBuf {
     let mut store_file = store_dir;
     store_file.push(filename);
 
-    store_file.to_path_buf()
+    Ok(store_file.to_path_buf())
 }
 
 #[cfg(test)]
@@ -167,7 +164,7 @@ mod tests {
         let arg_vec = vec!["fre", "--store", "/test/path"];
         let matches = get_app().get_matches_from_safe(arg_vec).unwrap();
 
-        let store_path = get_store_path(&matches);
+        let store_path = get_store_path(&matches).unwrap();
 
         assert_that!(store_path).is_equal_to(PathBuf::from("/test/path"));
     }
@@ -177,7 +174,7 @@ mod tests {
         let arg_vec = vec!["fre", "--store_name", "test.path"];
         let matches = get_app().get_matches_from_safe(arg_vec).unwrap();
 
-        let store_path = get_store_path(&matches);
+        let store_path = get_store_path(&matches).unwrap();
 
         assert_that!(store_path.to_str().unwrap()).ends_with("test.path");
     }

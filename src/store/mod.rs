@@ -3,7 +3,6 @@ mod serialize;
 use super::current_time_secs;
 use super::stats::ItemStats;
 use super::SortMethod;
-use log::error;
 use std::default::Default;
 use std::fs::{self, File};
 use std::io::{self, BufReader, BufWriter, Write};
@@ -120,10 +119,7 @@ impl FrecencyStore {
         for item in sorted.iter().take(take_num) {
             writer
                 .write_all(item.to_string(method, show_stats).as_bytes())
-                .unwrap_or_else(|e| {
-                    error!("unable to write to stdout: {}", e);
-                    process::exit(1);
-                });
+                .expect("failed to write to stdout")
         }
     }
 

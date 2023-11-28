@@ -1,22 +1,14 @@
-use log::error;
+use fre::current_time_secs;
 use predicates::*;
 use std::collections::HashMap;
 use std::io::Write;
-use std::process;
 use std::str;
-use std::time::SystemTime;
 use tempfile;
 
 pub fn get_tempfile_path() -> tempfile::TempPath {
     let mut file = tempfile::NamedTempFile::new().unwrap();
 
-    let current_time = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-        Ok(n) => (n.as_secs() as u128 * 1000 + n.subsec_millis() as u128) as f64 / 1000.0,
-        Err(e) => {
-            error!("invalid system time: {}", e);
-            process::exit(1);
-        }
-    };
+    let current_time = current_time_secs();
 
     file.write(
         format!(
