@@ -7,13 +7,6 @@ pub mod args;
 pub mod stats;
 pub mod store;
 
-#[derive(Debug, Clone, Copy)]
-pub enum SortMethod {
-    Recent,
-    Frequent,
-    Frecent,
-}
-
 /// Return the current time in seconds as a float
 pub fn current_time_secs() -> f64 {
     SystemTime::now()

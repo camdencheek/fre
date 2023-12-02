@@ -75,7 +75,7 @@ fn sorted_frequent() {
 fn sorted_invalid() {
     let store_file = common::get_tempfile_path();
 
-    let expected_error = predicate::str::contains("'badsort' isn't a valid value").from_utf8();
+    let expected_error = predicate::str::contains("invalid value 'badsort'").from_utf8();
 
     Command::main_binary()
         .unwrap()

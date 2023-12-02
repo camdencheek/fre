@@ -7,7 +7,7 @@ edition = '2021'
 license = 'MIT'
 
 [dependencies]
-clap = "2.31"
+clap = {version = "4.4", features = ["derive"]}
 serde = {version = "1.0.75", features = ["rc"]}
 serde_derive = "1.0.75"
 serde_json = "1.0.26"

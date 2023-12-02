@@ -2,7 +2,7 @@ mod serialize;
 
 use super::current_time_secs;
 use super::stats::ItemStats;
-use super::SortMethod;
+use crate::args::SortMethod;
 use std::default::Default;
 use std::fs::{self, File};
 use std::io::{self, BufReader, BufWriter, Write};
@@ -34,7 +34,7 @@ pub fn write_store(store: FrecencyStore, path: &PathBuf) -> io::Result<()> {
 /// A collection of statistics about the stored items
 pub struct FrecencyStore {
     reference_time: f64,
-    half_life: f32,
+    half_life: f64,
     pub items: Vec<ItemStats>,
 }
 
@@ -57,7 +57,7 @@ impl FrecencyStore {
     }
 
     /// Change the half life and reweight such that frecency does not change
-    pub fn set_half_life(&mut self, half_life: f32) {
+    pub fn set_half_life(&mut self, half_life: f64) {
         self.reset_time();
         self.half_life = half_life;
 
@@ -68,7 +68,7 @@ impl FrecencyStore {
 
     /// Return the number of half lives passed since the reference time
     pub fn half_lives_passed(&self) -> f64 {
-        (current_time_secs() - self.reference_time) / self.half_life as f64
+        (current_time_secs() - self.reference_time) / self.half_life
     }
 
     /// Reset the reference time to now, and reweight all the statistics to reflect that
@@ -92,7 +92,7 @@ impl FrecencyStore {
     }
 
     /// Adjust the score of a item by a given weight
-    pub fn adjust(&mut self, item: &str, weight: f32) {
+    pub fn adjust(&mut self, item: &str, weight: f64) {
         let item_stats = self.get(item);
 
         item_stats.update_frecency(weight);

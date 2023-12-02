@@ -4,7 +4,7 @@ use super::*;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct FrecencyStoreSerializer {
     reference_time: f64,
-    half_life: f32,
+    half_life: f64,
     items: Vec<serialize::ItemStatsSerializer>,
 }
 

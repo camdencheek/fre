@@ -1,21 +1,20 @@
 use anyhow::{Context, Result};
-use fre::*;
-use std::str::FromStr;
+use clap::Parser;
+use fre::{args::Cli, *};
 
 fn main() -> Result<()> {
-    let matches = args::get_app().get_matches();
+    let args = Cli::try_parse()?;
 
     // Construct the path to the store file
-    let store_file = args::get_store_path(&matches)?;
+    let store_file = args::get_store_path(&args)?;
 
     // Attempt to read and unmarshal the store file
     let mut usage = store::read_store(&store_file)
         .with_context(|| format!("failed to read store file {:?}", &store_file))?;
 
     // If a new half life is defined, parse and set it
-    if let Some(h) = matches.value_of("halflife") {
-        let half_life = h.parse::<f32>().context("parsing halflife")?;
-        usage.set_half_life(half_life);
+    if let Some(h) = args.janitor.halflife {
+        usage.set_half_life(h);
     }
 
     // TODO write a test for this
@@ -23,59 +22,41 @@ fn main() -> Result<()> {
         usage.reset_time()
     }
 
-    // Determine the sorting method. Defaults to frecent if unspecified
-    let sort_method = match matches.value_of("sort_method") {
-        Some("recent") => SortMethod::Recent,
-        Some("frequent") => SortMethod::Frequent,
-        Some("frecent") => SortMethod::Frecent,
-        None => SortMethod::Frecent,
-        Some(_) => unreachable!(), // enforced by clap
-    };
-
     // Print the directories if --sorted or --stat are specified
-    if matches.is_present("sorted") || matches.is_present("stat") {
-        let limit = matches
-            .value_of("limit")
-            .map(usize::from_str)
-            .transpose()
-            .context("parse limit")?;
-
-        usage.print_sorted(sort_method, matches.is_present("stat"), limit);
+    if args.stats.sorted || args.stats.stat {
+        usage.print_sorted(args.sort_method, args.stats.stat, args.stats.limit);
     }
 
     // Increment a directory
-    if matches.is_present("add") {
-        // This unwrap is okay because clap should catch a missing directory before this
-        let item = matches.value_of("item").unwrap();
-
-        usage.add(item);
+    if args.updates.add {
+        usage.add(args.item.as_ref().expect("add requires an item"));
     }
 
     // Handle increasing or decreasing a directory's score by a given weight
-    if matches.is_present("increase") || matches.is_present("decrease") {
+    if args.updates.increase.is_some() || args.updates.decrease.is_some() {
         // Get a positive weight if increase, negative if decrease
-        let weight = match (matches.value_of("increase"), matches.value_of("decrease")) {
-            (Some(i), None) => f32::from_str(i).context("parsing increase")?,
-            (None, Some(d)) => -1.0 * f32::from_str(d).context("parsing decrease")?,
-            _ => unreachable!(), // enforced by clap and block guard
+        let weight = match (args.updates.increase, args.updates.decrease) {
+            (Some(i), None) => i,
+            (None, Some(d)) => -d,
+            _ => panic!("increase and decrease cannot both be set"), // enforced by clap and block guard
         };
 
-        // Get the item to increase/decrease
-        let item = matches.value_of("item").unwrap(); // enforced by clap
-
-        usage.adjust(item, weight);
+        usage.adjust(
+            args.item
+                .as_ref()
+                .expect("item is required for increase or decrease"),
+            weight,
+        );
     }
 
     // Delete a directory
-    if matches.is_present("delete") {
-        let item = matches.value_of("item").unwrap();
-        usage.delete(item);
+    if args.updates.delete {
+        usage.delete(&args.item.expect("delete requires an item"));
     }
 
     // Truncate store to top N directories
-    if let Some(n) = matches.value_of("truncate") {
-        let keep_num = n.parse::<usize>().context("parsing truncate")?;
-        usage.truncate(keep_num, sort_method);
+    if let Some(n) = args.janitor.truncate {
+        usage.truncate(n, args.sort_method);
     }
 
     // Write the updated store file

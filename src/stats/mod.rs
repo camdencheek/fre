@@ -1,5 +1,5 @@
 use super::current_time_secs;
-use super::SortMethod;
+use crate::args::SortMethod;
 use std::cmp::Ordering;
 
 pub mod serialize;
@@ -8,16 +8,16 @@ pub mod serialize;
 #[derive(Clone)]
 pub struct ItemStats {
     pub item: String,
-    half_life: f32,
+    half_life: f64,
     reference_time: f64,
-    frecency: f32,
-    last_accessed: f32,
+    frecency: f64,
+    last_accessed: f64,
     num_accesses: i32,
 }
 
 impl ItemStats {
     /// Create a new item
-    pub fn new(item: String, ref_time: f64, half_life: f32) -> ItemStats {
+    pub fn new(item: String, ref_time: f64, half_life: f64) -> ItemStats {
         ItemStats {
             half_life,
             reference_time: ref_time,
@@ -57,23 +57,23 @@ impl ItemStats {
     }
 
     /// Change the half life of the item, maintaining the same frecency
-    pub fn set_half_life(&mut self, half_life: f32) {
+    pub fn set_half_life(&mut self, half_life: f64) {
         let old_frecency = self.get_frecency();
         self.half_life = half_life;
         self.set_frecency(old_frecency);
     }
 
     /// Calculate the frecency of the item
-    pub fn get_frecency(&self) -> f32 {
-        self.frecency / 2.0f32.powf(secs_elapsed(self.reference_time) / self.half_life)
+    pub fn get_frecency(&self) -> f64 {
+        self.frecency / 2.0f64.powf(secs_elapsed(self.reference_time) / self.half_life)
     }
 
-    pub fn set_frecency(&mut self, new: f32) {
-        self.frecency = new * 2.0f32.powf(secs_elapsed(self.reference_time) / self.half_life);
+    pub fn set_frecency(&mut self, new: f64) {
+        self.frecency = new * 2.0f64.powf(secs_elapsed(self.reference_time) / self.half_life);
     }
 
     /// update the frecency of the item by the given weight
-    pub fn update_frecency(&mut self, weight: f32) {
+    pub fn update_frecency(&mut self, weight: f64) {
         let original_frecency = self.get_frecency();
         self.set_frecency(original_frecency + weight);
     }
@@ -85,7 +85,7 @@ impl ItemStats {
 
     /// Update the time the item was last accessed
     pub fn update_last_access(&mut self, time: f64) {
-        self.last_accessed = (time - self.reference_time) as f32;
+        self.last_accessed = time - self.reference_time;
     }
 
     /// Reset the reference time and recalculate the last_accessed time
@@ -93,12 +93,12 @@ impl ItemStats {
         let original_frecency = self.get_frecency();
         let delta = self.reference_time - new_time;
         self.reference_time = new_time;
-        self.last_accessed += delta as f32;
+        self.last_accessed += delta;
         self.set_frecency(original_frecency);
     }
 
     /// Return the number of seconds since the item was last accessed
-    pub fn secs_since_access(&self) -> f32 {
+    pub fn secs_since_access(&self) -> f64 {
         secs_elapsed(self.reference_time) - self.last_accessed
     }
 
@@ -121,8 +121,8 @@ impl ItemStats {
 }
 
 /// The number of seconds elapsed since `ref_time`
-pub fn secs_elapsed(ref_time: f64) -> f32 {
-    (current_time_secs() - ref_time) as f32
+pub fn secs_elapsed(ref_time: f64) -> f64 {
+    current_time_secs() - ref_time
 }
 
 #[cfg(test)]
