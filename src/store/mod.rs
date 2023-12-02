@@ -7,12 +7,11 @@ use std::default::Default;
 use std::fs::{self, File};
 use std::io::{self, BufReader, BufWriter, Write};
 use std::path::PathBuf;
-use std::process;
 
 /// Parses the file at `path` into a `UsageStore` object
 pub fn read_store(path: &PathBuf) -> Result<FrecencyStore, io::Error> {
     if path.is_file() {
-        let file = File::open(&path)?;
+        let file = File::open(path)?;
         let reader = BufReader::new(file);
         let store: serialize::FrecencyStoreSerializer = serde_json::from_reader(reader)?;
         Ok(FrecencyStore::from(store))
@@ -24,8 +23,8 @@ pub fn read_store(path: &PathBuf) -> Result<FrecencyStore, io::Error> {
 /// Serializes and writes a `UsageStore` to a file
 pub fn write_store(store: FrecencyStore, path: &PathBuf) -> io::Result<()> {
     let store_dir = path.parent().expect("file must have parent");
-    fs::create_dir_all(&store_dir)?;
-    let file = File::create(&path)?;
+    fs::create_dir_all(store_dir)?;
+    let file = File::create(path)?;
     let writer = BufWriter::new(file);
     serde_json::to_writer_pretty(writer, &serialize::FrecencyStoreSerializer::from(store))?;
 
@@ -85,7 +84,7 @@ impl FrecencyStore {
 
     /// Log a visit to a item
     pub fn add(&mut self, item: &str) {
-        let item_stats = self.get(&item);
+        let item_stats = self.get(item);
 
         item_stats.update_frecency(1.0);
         item_stats.update_num_accesses(1);
@@ -94,7 +93,7 @@ impl FrecencyStore {
 
     /// Adjust the score of a item by a given weight
     pub fn adjust(&mut self, item: &str, weight: f32) {
-        let item_stats = self.get(&item);
+        let item_stats = self.get(item);
 
         item_stats.update_frecency(weight);
         item_stats.update_num_accesses(weight as i32);
@@ -114,7 +113,7 @@ impl FrecencyStore {
         let mut writer = BufWriter::new(handle);
 
         let sorted = self.sorted(method);
-        let take_num = limit.unwrap_or_else(|| sorted.len());
+        let take_num = limit.unwrap_or(sorted.len());
 
         for item in sorted.iter().take(take_num) {
             writer

@@ -48,7 +48,7 @@ fn main() -> Result<()> {
         // This unwrap is okay because clap should catch a missing directory before this
         let item = matches.value_of("item").unwrap();
 
-        usage.add(&item);
+        usage.add(item);
     }
 
     // Handle increasing or decreasing a directory's score by a given weight
@@ -63,7 +63,7 @@ fn main() -> Result<()> {
         // Get the item to increase/decrease
         let item = matches.value_of("item").unwrap(); // enforced by clap
 
-        usage.adjust(&item, weight);
+        usage.adjust(item, weight);
     }
 
     // Delete a directory

@@ -1,8 +1,7 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 use clap::{App, AppSettings, Arg, ArgMatches};
 use directories::ProjectDirs;
 use std::path::PathBuf;
-use std::process;
 
 /// Returns Ok(_) if input string  can be parsed as an int.
 /// Used for argument validation.

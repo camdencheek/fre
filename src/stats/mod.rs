@@ -65,12 +65,11 @@ impl ItemStats {
 
     /// Calculate the frecency of the item
     pub fn get_frecency(&self) -> f32 {
-        self.frecency / 2.0f32.powf(secs_elapsed(self.reference_time) as f32 / self.half_life)
+        self.frecency / 2.0f32.powf(secs_elapsed(self.reference_time) / self.half_life)
     }
 
     pub fn set_frecency(&mut self, new: f32) {
-        self.frecency =
-            new * 2.0f32.powf(secs_elapsed(self.reference_time) as f32 / self.half_life);
+        self.frecency = new * 2.0f32.powf(secs_elapsed(self.reference_time) / self.half_life);
     }
 
     /// update the frecency of the item by the given weight
@@ -116,7 +115,7 @@ impl ItemStats {
                 SortMethod::Frecent => format!("{: <.3}\t{}\n", self.get_frecency(), self.item),
             }
         } else {
-            return format!("{}\n", self.item.clone());
+            format!("{}\n", self.item.clone())
         }
     }
 }
