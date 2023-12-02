@@ -17,11 +17,11 @@ pub struct ItemStats {
 
 impl ItemStats {
     /// Create a new item
-    pub fn new(item: &str, ref_time: f64, half_life: f32) -> ItemStats {
+    pub fn new(item: String, ref_time: f64, half_life: f32) -> ItemStats {
         ItemStats {
             half_life,
             reference_time: ref_time,
-            item: item.to_string(),
+            item,
             frecency: 0.0,
             last_accessed: 0.0,
             num_accesses: 0,
@@ -148,7 +148,7 @@ mod tests {
         let test_item = "/test/item";
         let ref_time = current_time_secs();
 
-        let new_item_stats = ItemStats::new(test_item, ref_time, 10.0);
+        let new_item_stats = ItemStats::new(test_item.to_string(), ref_time, 10.0);
 
         assert_eq!(new_item_stats.frecency, 0.0);
         assert_eq!(new_item_stats.num_accesses, 0);

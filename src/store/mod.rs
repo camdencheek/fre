@@ -141,7 +141,7 @@ impl FrecencyStore {
             Err(idx) => {
                 self.items.insert(
                     idx,
-                    ItemStats::new(item, self.reference_time, self.half_life),
+                    ItemStats::new(item.to_string(), self.reference_time, self.half_life),
                 );
                 &mut self.items[idx]
             }
