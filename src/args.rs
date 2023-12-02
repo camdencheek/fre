@@ -156,8 +156,9 @@ pub fn default_store(filename: Option<&str>) -> Result<PathBuf> {
 
 #[cfg(test)]
 mod tests {
+    use std::ffi::OsStr;
+
     use super::*;
-    use spectral::prelude::*;
 
     #[test]
     fn get_store_path_full() {
@@ -166,7 +167,7 @@ mod tests {
 
         let store_path = get_store_path(&matches).unwrap();
 
-        assert_that!(store_path).is_equal_to(PathBuf::from("/test/path"));
+        assert_eq!(PathBuf::from("/test/path"), store_path);
     }
 
     #[test]
@@ -176,6 +177,6 @@ mod tests {
 
         let store_path = get_store_path(&matches).unwrap();
 
-        assert_that!(store_path.to_str().unwrap()).ends_with("test.path");
+        assert_eq!(store_path.file_name(), Some(OsStr::new("test.path")));
     }
 }

@@ -153,7 +153,6 @@ impl FrecencyStore {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use spectral::prelude::*;
 
     fn create_usage() -> FrecencyStore {
         FrecencyStore {
@@ -169,7 +168,7 @@ mod tests {
 
         usage.add("test");
 
-        assert_that!(usage.items.len()).is_equal_to(1);
+        assert_eq!(1, usage.items.len());
     }
 
     #[test]
@@ -179,23 +178,23 @@ mod tests {
         usage.add("test");
         usage.add("test");
 
-        assert_that!(usage.items.len()).is_equal_to(1);
+        assert_eq!(1, usage.items.len());
     }
 
     #[test]
     fn delete_existing() {
         let mut usage = create_usage();
         usage.add("test");
-        assert_that!(usage.items.len()).is_equal_to(1);
+        assert_eq!(usage.items.len(), 1);
         usage.delete("test");
-        assert_that!(usage.items.len()).is_equal_to(0);
+        assert_eq!(usage.items.len(), 0);
     }
 
     #[test]
     fn delete_nonexisting() {
         let mut usage = create_usage();
         usage.delete("test");
-        assert_that!(usage.items.len()).is_equal_to(0);
+        assert_eq!(usage.items.len(), 0);
     }
 
     #[test]
@@ -205,7 +204,7 @@ mod tests {
         usage.add("test");
         usage.adjust("test", 3.0);
 
-        assert_that!(usage.items.len()).is_equal_to(1);
+        assert_eq!(usage.items.len(), 1);
     }
 
     #[test]
@@ -214,7 +213,7 @@ mod tests {
 
         usage.adjust("test", 3.0);
 
-        assert_that!(usage.items.len()).is_equal_to(1);
+        assert_eq!(usage.items.len(), 1);
     }
 
     #[test]
@@ -225,7 +224,7 @@ mod tests {
 
         usage.truncate(1, SortMethod::Recent);
 
-        assert_that!(usage.items.len()).is_equal_to(1);
+        assert_eq!(usage.items.len(), 1);
     }
 
     #[test]
@@ -236,7 +235,7 @@ mod tests {
 
         usage.truncate(3, SortMethod::Recent);
 
-        assert_that!(usage.items.len()).is_equal_to(2);
+        assert_eq!(usage.items.len(), 2);
     }
 
     #[test]
@@ -248,8 +247,8 @@ mod tests {
 
         let sorted = usage.sorted(SortMethod::Frecent);
 
-        assert_that!(sorted.len()).is_equal_to(2);
-        assert_that!(sorted[0].item).is_equal_to("dir2".to_string());
+        assert_eq!(sorted.len(), 2);
+        assert_eq!(sorted[0].item, "dir2".to_string());
     }
 
     #[test]
@@ -261,8 +260,8 @@ mod tests {
 
         let sorted = usage.sorted(SortMethod::Frecent);
 
-        assert_that!(sorted.len()).is_equal_to(2);
-        assert_that!(sorted[0].item).is_equal_to("dir1".to_string());
+        assert_eq!(sorted.len(), 2);
+        assert_eq!(sorted[0].item, "dir1".to_string());
     }
 
     #[test]
@@ -276,8 +275,8 @@ mod tests {
 
         let sorted = usage.sorted(SortMethod::Recent);
 
-        assert_that!(sorted.len()).is_equal_to(2);
-        assert_that!(sorted[0].item).is_equal_to("dir2".to_string());
+        assert_eq!(sorted.len(), 2);
+        assert_eq!(sorted[0].item, "dir2".to_string());
     }
 
     #[test]
@@ -289,8 +288,8 @@ mod tests {
 
         let sorted = usage.sorted(SortMethod::Frequent);
 
-        assert_that!(sorted.len()).is_equal_to(2);
-        assert_that!(sorted[0].item).is_equal_to("dir2".to_string());
+        assert_eq!(sorted.len(), 2);
+        assert_eq!(sorted[0].item, "dir2".to_string());
     }
 
     #[test]
@@ -300,7 +299,7 @@ mod tests {
 
         let _stats = usage.get("dir1");
 
-        assert_that!(usage.items.len()).is_equal_to(1);
+        assert_eq!(usage.items.len(), 1);
     }
 
     #[test]
@@ -310,7 +309,7 @@ mod tests {
 
         usage.get("dir2");
 
-        assert_that!(usage.items.len()).is_equal_to(2);
+        assert_eq!(usage.items.len(), 2);
     }
 
     #[test]
@@ -323,8 +322,8 @@ mod tests {
 
         usage.reset_time();
 
-        assert_that!(usage.reference_time).is_close_to(current_time, 0.1);
-        assert_that!(usage.get("test").get_frecency()).is_close_to(original_frecency, 0.1)
+        assert!((usage.reference_time - current_time).abs() < 0.01);
+        assert!((usage.get("test").get_frecency() - original_frecency).abs() < 0.01);
     }
 
     #[test]
@@ -338,7 +337,7 @@ mod tests {
 
         let new_frecency = usage.get("dir1").get_frecency();
 
-        assert_that!(usage.half_life).is_close_to(10.0, 0.01);
-        assert_that!(new_frecency).is_close_to(original_frecency, 0.01);
+        assert!((usage.half_life - 10.0).abs() < 0.01);
+        assert!((new_frecency - original_frecency).abs() < 0.01);
     }
 }

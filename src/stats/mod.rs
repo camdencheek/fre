@@ -129,7 +129,6 @@ pub fn secs_elapsed(ref_time: f64) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use spectral::prelude::*;
 
     fn create_item() -> ItemStats {
         let test_item = "/test/item".to_string();
@@ -203,8 +202,8 @@ mod tests {
 
         low_item_stats.update_frecency(1.0);
 
-        assert_that!(low_item_stats.frecency).is_close_to(1.0, 0.01);
-        assert_that!(low_item_stats.num_accesses).is_equal_to(0);
+        assert!((low_item_stats.frecency - 1.0).abs() < 0.01);
+        assert_eq!(low_item_stats.num_accesses, 0);
     }
 
     #[test]
@@ -213,8 +212,8 @@ mod tests {
 
         low_item_stats.update_num_accesses(1);
 
-        assert_that!(low_item_stats.num_accesses).is_equal_to(1);
-        assert_that!(low_item_stats.frecency).is_close_to(0.0, 0.01);
+        assert_eq!(low_item_stats.num_accesses, 1);
+        assert!((low_item_stats.frecency.abs() - 0.0) < 0.01);
     }
 
     #[test]
@@ -223,31 +222,44 @@ mod tests {
 
         low_item_stats.update_last_access(current_time_secs());
 
-        assert_that!(low_item_stats.secs_since_access()).is_close_to(0.0, 0.1);
+        // TODO: don't assert on current time
+        assert!(low_item_stats.secs_since_access() < 0.1);
     }
 
     #[test]
     fn to_string_no_stats() {
         let low_item_stats = create_item();
 
-        assert_that!(low_item_stats.to_string(SortMethod::Frecent, false))
-            .is_equal_to("/test/item\n".to_string());
-        assert_that!(low_item_stats.to_string(SortMethod::Recent, false))
-            .is_equal_to("/test/item\n".to_string());
-        assert_that!(low_item_stats.to_string(SortMethod::Frequent, false))
-            .is_equal_to("/test/item\n".to_string());
+        assert_eq!(
+            low_item_stats.to_string(SortMethod::Frecent, false),
+            "/test/item\n".to_string()
+        );
+        assert_eq!(
+            low_item_stats.to_string(SortMethod::Recent, false),
+            "/test/item\n".to_string()
+        );
+        assert_eq!(
+            low_item_stats.to_string(SortMethod::Frequent, false),
+            "/test/item\n".to_string()
+        );
     }
 
     #[test]
     fn to_string_stats() {
         let low_item_stats = create_item();
 
-        assert_that!(low_item_stats.to_string(SortMethod::Frecent, true))
-            .is_equal_to("0.000\t/test/item\n".to_string());
-        assert_that!(low_item_stats.to_string(SortMethod::Recent, true))
-            .is_equal_to("0.000\t/test/item\n".to_string());
-        assert_that!(low_item_stats.to_string(SortMethod::Frequent, true))
-            .is_equal_to("0\t/test/item\n".to_string());
+        assert_eq!(
+            low_item_stats.to_string(SortMethod::Frecent, true),
+            "0.000\t/test/item\n".to_string()
+        );
+        assert_eq!(
+            low_item_stats.to_string(SortMethod::Recent, true),
+            "0.000\t/test/item\n".to_string()
+        );
+        assert_eq!(
+            low_item_stats.to_string(SortMethod::Frequent, true),
+            "0\t/test/item\n".to_string()
+        );
     }
 
     #[test]
@@ -257,7 +269,7 @@ mod tests {
         low_item_stats.reset_ref_time(current_time_secs() - 1.0);
         low_item_stats.frecency = 1.0;
 
-        assert_that!(low_item_stats.get_frecency()).is_close_to(0.5, 0.1);
+        assert!((low_item_stats.get_frecency() - 0.5).abs() < 0.1);
     }
 
     #[test]
@@ -267,7 +279,7 @@ mod tests {
         low_item_stats.reset_ref_time(current_time_secs() - 2.0);
         low_item_stats.frecency = 1.0;
 
-        assert_that!(low_item_stats.get_frecency()).is_close_to(0.25, 0.1);
+        assert!((low_item_stats.get_frecency() - 0.25).abs() < 0.1);
     }
 
     #[test]
@@ -276,14 +288,14 @@ mod tests {
 
         low_item_stats.last_accessed = -2.0;
 
-        assert_that!(low_item_stats.secs_since_access()).is_close_to(2.0, 0.1);
+        assert!((low_item_stats.secs_since_access() - 2.0).abs() < 0.1);
     }
 
     #[test]
     fn secs_elapsed_one_second() {
         let one_second_ago = current_time_secs() - 1.0;
 
-        assert_that!(secs_elapsed(one_second_ago)).is_close_to(1.0, 0.1);
+        assert!((secs_elapsed(one_second_ago) - 1.0).abs() < 0.1)
     }
 
     #[test]
@@ -295,8 +307,8 @@ mod tests {
 
         low_item_stats.reset_ref_time(current_time);
 
-        assert_that!(low_item_stats.reference_time).is_close_to(current_time, 0.1);
-        assert_that!(low_item_stats.last_accessed).is_close_to(5.0, 0.1);
+        assert!((low_item_stats.reference_time - current_time).abs() < 0.1);
+        assert!((low_item_stats.last_accessed - 5.0).abs() < 0.1);
     }
 
     #[test]
@@ -309,7 +321,7 @@ mod tests {
 
         low_item_stats.set_half_life(2.0);
 
-        assert_that!(low_item_stats.half_life).is_equal_to(2.0);
-        assert_that!(low_item_stats.get_frecency()).is_close_to(original_frecency, 0.01);
+        assert_eq!(low_item_stats.half_life, 2.0);
+        assert!((low_item_stats.get_frecency() - original_frecency).abs() < 0.01);
     }
 }

@@ -15,7 +15,6 @@ directories = "1.0.2"
 assert_cmd = "0.10"
 predicates = "1.0"
 tempfile = "3.0.3"
-spectral = "0.6.0"
 anyhow = "1.0.75"
 
 [profile.release]
