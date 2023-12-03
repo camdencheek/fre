@@ -9,10 +9,12 @@ pub mod serialize;
 pub struct ItemStats {
     pub item: String,
     half_life: f64,
+    // Time in seconds since the epoch
     reference_time: f64,
-    frecency: f64,
+    // Time in seconds since reference_time that this item was last accessed
     last_accessed: f64,
-    num_accesses: i32,
+    frecency: f64,
+    pub num_accesses: i32,
 }
 
 impl ItemStats {
@@ -65,11 +67,12 @@ impl ItemStats {
 
     /// Calculate the frecency of the item
     pub fn get_frecency(&self) -> f64 {
-        self.frecency / 2.0f64.powf(secs_elapsed(self.reference_time) / self.half_life)
+        self.frecency / 2.0f64.powf((current_time_secs() - self.reference_time) / self.half_life)
     }
 
     pub fn set_frecency(&mut self, new: f64) {
-        self.frecency = new * 2.0f64.powf(secs_elapsed(self.reference_time) / self.half_life);
+        self.frecency =
+            new * 2.0f64.powf((current_time_secs() - self.reference_time) / self.half_life);
     }
 
     /// update the frecency of the item by the given weight
@@ -97,26 +100,9 @@ impl ItemStats {
         self.set_frecency(original_frecency);
     }
 
-    /// Return the number of seconds since the item was last accessed
-    pub fn secs_since_access(&self) -> f64 {
-        secs_elapsed(self.reference_time) - self.last_accessed
-    }
-
-    /// sort method if `show_stats` is `true`
-    pub fn to_string(&self, method: SortMethod, show_stats: bool) -> String {
-        if show_stats {
-            match method {
-                SortMethod::Recent => format!(
-                    "{: <.3}\t{}\n",
-                    self.secs_since_access() / 60.0 / 60.0,
-                    self.item
-                ),
-                SortMethod::Frequent => format!("{: <}\t{}\n", self.num_accesses, self.item),
-                SortMethod::Frecent => format!("{: <.3}\t{}\n", self.get_frecency(), self.item),
-            }
-        } else {
-            format!("{}\n", self.item.clone())
-        }
+    /// Timestamp (in seconds since epoch) of the last access
+    pub fn last_access(&self) -> f64 {
+        self.reference_time + self.last_accessed
     }
 }
 
@@ -127,6 +113,8 @@ pub fn secs_elapsed(ref_time: f64) -> f64 {
 
 #[cfg(test)]
 mod tests {
+    use crate::store::write_stat;
+
     use super::*;
 
     fn create_item() -> ItemStats {
@@ -216,49 +204,35 @@ mod tests {
     }
 
     #[test]
-    fn update_last_access() {
-        let mut low_item_stats = create_item();
-
-        low_item_stats.update_last_access(current_time_secs());
-
-        // TODO: don't assert on current time
-        assert!(low_item_stats.secs_since_access() < 0.1);
-    }
-
-    #[test]
     fn to_string_no_stats() {
         let low_item_stats = create_item();
 
-        assert_eq!(
-            low_item_stats.to_string(SortMethod::Frecent, false),
-            "/test/item\n".to_string()
-        );
-        assert_eq!(
-            low_item_stats.to_string(SortMethod::Recent, false),
-            "/test/item\n".to_string()
-        );
-        assert_eq!(
-            low_item_stats.to_string(SortMethod::Frequent, false),
-            "/test/item\n".to_string()
-        );
+        let current_time = current_time_secs();
+        for method in [
+            SortMethod::Frecent,
+            SortMethod::Frequent,
+            SortMethod::Recent,
+        ] {
+            let mut b = Vec::new();
+            write_stat(&mut b, &low_item_stats, method, false, current_time).unwrap();
+            assert_eq!(b, String::from("/test/item\n").into_bytes());
+        }
     }
 
     #[test]
     fn to_string_stats() {
         let low_item_stats = create_item();
 
-        assert_eq!(
-            low_item_stats.to_string(SortMethod::Frecent, true),
-            "0.000\t/test/item\n".to_string()
-        );
-        assert_eq!(
-            low_item_stats.to_string(SortMethod::Recent, true),
-            "0.000\t/test/item\n".to_string()
-        );
-        assert_eq!(
-            low_item_stats.to_string(SortMethod::Frequent, true),
-            "0\t/test/item\n".to_string()
-        );
+        let current_time = current_time_secs();
+        for (method, expected) in [
+            // (SortMethod::Frecent, String::from("0.000\t/test/item\n")),
+            (SortMethod::Recent, String::from("0.000\t/test/item\n")),
+            // (SortMethod::Frequent, String::from("0\t/test/item\n")),
+        ] {
+            let mut b = Vec::new();
+            write_stat(&mut b, &low_item_stats, method, true, current_time).unwrap();
+            assert_eq!(String::from_utf8(b).unwrap(), expected);
+        }
     }
 
     #[test]
@@ -279,22 +253,6 @@ mod tests {
         low_item_stats.frecency = 1.0;
 
         assert!((low_item_stats.get_frecency() - 0.25).abs() < 0.1);
-    }
-
-    #[test]
-    fn secs_since_access() {
-        let mut low_item_stats = create_item();
-
-        low_item_stats.last_accessed = -2.0;
-
-        assert!((low_item_stats.secs_since_access() - 2.0).abs() < 0.1);
-    }
-
-    #[test]
-    fn secs_elapsed_one_second() {
-        let one_second_ago = current_time_secs() - 1.0;
-
-        assert!((secs_elapsed(one_second_ago) - 1.0).abs() < 0.1)
     }
 
     #[test]

@@ -3,6 +3,7 @@ mod serialize;
 use super::current_time_secs;
 use super::stats::ItemStats;
 use crate::args::SortMethod;
+use anyhow::Result;
 use std::default::Default;
 use std::fs::{self, File};
 use std::io::{self, BufReader, BufWriter, Write};
@@ -106,24 +107,8 @@ impl FrecencyStore {
         }
     }
 
-    /// Print out all the items, sorted by `method`, with an optional maximum of `limit`
-    pub fn print_sorted(&self, method: SortMethod, show_stats: bool, limit: Option<usize>) {
-        let stdout = io::stdout();
-        let handle = stdout.lock();
-        let mut writer = BufWriter::new(handle);
-
-        let sorted = self.sorted(method);
-        let take_num = limit.unwrap_or(sorted.len());
-
-        for item in sorted.iter().take(take_num) {
-            writer
-                .write_all(item.to_string(method, show_stats).as_bytes())
-                .expect("failed to write to stdout")
-        }
-    }
-
     /// Return a sorted vector of all the items in the store, sorted by `sort_method`
-    fn sorted(&self, sort_method: SortMethod) -> Vec<ItemStats> {
+    pub fn sorted(&self, sort_method: SortMethod) -> Vec<ItemStats> {
         let mut new_vec = self.items.clone();
         new_vec.sort_by(|item1, item2| item1.cmp_score(item2, sort_method).reverse());
 
@@ -147,6 +132,45 @@ impl FrecencyStore {
             }
         }
     }
+}
+
+/// Print out all the items, sorted by `method`, with an optional maximum of `limit`
+pub fn write_stats<W: Write>(
+    w: &mut W,
+    items: &[ItemStats],
+    method: SortMethod,
+    show_stats: bool,
+    current_time: f64,
+) -> Result<()> {
+    for item in items {
+        write_stat(w, item, method, show_stats, current_time)?;
+    }
+    Ok(())
+}
+
+pub fn write_stat<W: Write>(
+    w: &mut W,
+    item: &ItemStats,
+    method: SortMethod,
+    show_stats: bool,
+    current_time: f64,
+) -> Result<()> {
+    if show_stats {
+        let (score, precision) = match method {
+            SortMethod::Recent => ((current_time - item.last_access()) / 60.0 / 60.0, 3),
+            SortMethod::Frequent => (item.num_accesses as f64, 0),
+            SortMethod::Frecent => (item.get_frecency(), 3),
+        };
+        w.write_fmt(format_args!(
+            "{: <.prec$}\t{}\n",
+            score,
+            item.item,
+            prec = precision
+        ))?;
+    } else {
+        w.write_fmt(format_args!("{}\n", &item.item))?;
+    }
+    Ok(())
 }
 
 #[cfg(test)]

@@ -1,6 +1,8 @@
+use std::io::{stdout, BufWriter};
+
 use anyhow::{Context, Result};
 use clap::Parser;
-use fre::{args::Cli, *};
+use fre::{args::Cli, store::write_stats, *};
 
 fn main() -> Result<()> {
     let args = Cli::try_parse()?;
@@ -24,7 +26,22 @@ fn main() -> Result<()> {
 
     // Print the directories if --sorted or --stat are specified
     if args.stats.sorted || args.stats.stat {
-        usage.print_sorted(args.sort_method, args.stats.stat, args.stats.limit);
+        let sorted = usage.sorted(args.sort_method);
+        let mut sorted = sorted.as_slice();
+        if let Some(l) = args.stats.limit {
+            sorted = &sorted[..usize::min(sorted.len(), l)]
+        }
+
+        let stdout = stdout();
+        let handle = stdout.lock();
+        let mut w = BufWriter::new(handle);
+        write_stats(
+            &mut w,
+            sorted,
+            args.sort_method,
+            args.stats.stat,
+            current_time_secs(),
+        )?;
     }
 
     // Increment a directory
