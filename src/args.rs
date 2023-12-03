@@ -66,6 +66,10 @@ pub struct StatsArgs {
     /// Limit the number of results printed with --sorted or --stat
     #[arg(long, requires = "list")]
     pub limit: Option<usize>,
+
+    /// Override the number of digits shown with --stat
+    #[arg(long, requires = "stat")]
+    pub stat_digits: Option<usize>,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]

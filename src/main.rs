@@ -41,6 +41,7 @@ fn main() -> Result<()> {
             args.sort_method,
             args.stats.stat,
             current_time_secs(),
+            args.stats.stat_digits,
         )?;
     }
 

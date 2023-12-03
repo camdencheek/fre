@@ -141,9 +141,17 @@ pub fn write_stats<W: Write>(
     method: SortMethod,
     show_stats: bool,
     current_time: f64,
+    precision_override: Option<usize>,
 ) -> Result<()> {
     for item in items {
-        write_stat(w, item, method, show_stats, current_time)?;
+        write_stat(
+            w,
+            item,
+            method,
+            show_stats,
+            current_time,
+            precision_override,
+        )?;
     }
     Ok(())
 }
@@ -154,13 +162,15 @@ pub fn write_stat<W: Write>(
     method: SortMethod,
     show_stats: bool,
     current_time: f64,
+    precision_override: Option<usize>,
 ) -> Result<()> {
     if show_stats {
-        let (score, precision) = match method {
+        let (score, default_precision) = match method {
             SortMethod::Recent => ((current_time - item.last_access()) / 60.0 / 60.0, 3),
             SortMethod::Frequent => (item.num_accesses as f64, 0),
-            SortMethod::Frecent => (item.get_frecency(), 3),
+            SortMethod::Frecent => (item.get_frecency(current_time), 3),
         };
+        let precision = precision_override.unwrap_or(default_precision);
         w.write_fmt(format_args!(
             "{: <.prec$}\t{}\n",
             score,
@@ -341,12 +351,12 @@ mod tests {
         let current_time = current_time_secs();
         usage.reference_time = current_time - 10.0;
         usage.add("test");
-        let original_frecency = usage.get("test").get_frecency();
+        let original_frecency = usage.get("test").get_frecency(current_time);
 
         usage.reset_time();
 
         assert!((usage.reference_time - current_time).abs() < 0.01);
-        assert!((usage.get("test").get_frecency() - original_frecency).abs() < 0.01);
+        assert!((usage.get("test").get_frecency(current_time) - original_frecency).abs() < 0.01);
     }
 
     #[test]
@@ -355,10 +365,10 @@ mod tests {
         let current_time = current_time_secs();
         usage.reference_time = current_time - 10.0;
         usage.add("dir1");
-        let original_frecency = usage.get("dir1").get_frecency();
+        let original_frecency = usage.get("dir1").get_frecency(current_time);
         usage.set_half_life(10.0);
 
-        let new_frecency = usage.get("dir1").get_frecency();
+        let new_frecency = usage.get("dir1").get_frecency(current_time);
 
         assert!((usage.half_life - 10.0).abs() < 0.01);
         assert!((new_frecency - original_frecency).abs() < 0.01);
