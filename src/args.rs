@@ -91,7 +91,7 @@ impl From<SortMethod> for OsStr {
 
 #[derive(Args, Debug)]
 pub struct JanitorArgs {
-    /// Change the halflife to N seconds
+    /// Change the halflife to N seconds (default 3 days)
     #[arg(long, value_name = "N")]
     pub halflife: Option<f64>,
 
